@@ -13,6 +13,22 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: { '@': path.resolve(import.meta.dirname, './src') },
     },
+    build: {
+      rolldownOptions: {
+        output: {
+          // Long-lived vendor chunks: cached across deploys and kept under the size warning.
+          codeSplitting: {
+            groups: [
+              // Module ids always use "/" (also on Windows).
+              { name: "react", test: /node_modules\/(react|react-dom|react-router|scheduler)\// },
+              { name: "ui", test: /node_modules\/(@base-ui|@floating-ui|lucide-react|sonner)\// },
+              { name: "forms", test: /node_modules\/(zod|react-hook-form|@hookform)\// },
+              { name: "charts", test: /node_modules\/(recharts|d3-|victory-vendor|@reduxjs|immer|reselect|redux)/ },
+            ],
+          },
+        },
+      },
+    },
     server: {
       port: 5173,
       strictPort: true,

@@ -154,7 +154,7 @@ Segurança: `.xlsm`/`.xls` são rejeitados; ClosedXML só lê valores de célula
 
 ## 11. Dados de demonstração
 
-Comando explícito, apenas em `Development`: `dotnet run --project src/Datavello.Api -- seed-demo`. Idempotente: localiza a empresa “Padaria Exemplo (dados fictícios)” pelo usuário `demo@datavello.local`; se já existir, não duplica nada; nunca toca em outras empresas. Credenciais documentadas só no README, para uso local.
+Comando explícito, apenas em `Development`: `dotnet run --project src/Datavello.Api -- seed-demo` (ou `seed-demo --reset` para recriar). Idempotente: se o usuário `demo@datavello.local` já existe, não faz nada. O `--reset` apaga somente as empresas cujo dono é o usuário de demonstração (e recusa se houver outros membros) e as recria. Cerca de 14 meses de movimentações fictícias de uma padaria, com a observação "Dado fictício de demonstração.". Senha padrão `Demo12345`, configurável por `Demo__Password` no `.env`; apenas para ambiente local.
 
 ## 12. Testes
 
@@ -162,7 +162,15 @@ Comando explícito, apenas em `Development`: `dotnet run --project src/Datavello
 - **Integração:** API real (`WebApplicationFactory`) contra um banco PostgreSQL de teste (`datavello_test`, recriado a cada execução): autenticação, CRUD, filtros, indicadores, importação, persistência de widgets e isolamento entre empresas.
 - Como Docker não está disponível, os testes usam o PostgreSQL local via `ConnectionStrings__Test`. Testcontainers pode ser adotado quando Docker estiver instalado.
 
-## 13. Decisões e riscos
+## 13. Visualização de dados
+
+- Cores das séries validadas com verificador de paleta (daltonismo e contraste): receitas `#2a78d6`, despesas `#eb6834`, sempre as mesmas em todos os gráficos. Verde/vermelho ficam reservados para variações (deltas) e tipo da transação, sempre com ícone/sinal além da cor.
+- Formas: linhas para evolução mensal, colunas agrupadas para o comparativo, área para saldo acumulado e barras horizontais ordenadas para despesas por categoria (máx. 6 barras; o restante vira "Outras").
+- Todo gráfico tem tooltip e uma alternância "Tabela", para que nenhum valor dependa só do hover ou da cor.
+- Filtros (período, categoria, tipo) ficam numa única linha acima do conteúdo, valem para todos os blocos e são guardados na URL.
+- Variação do saldo é mostrada em R$ (não em %), pois o saldo pode mudar de sinal.
+
+## 14. Decisões e riscos
 
 | # | Decisão / risco | Tratamento |
 | --- | --- | --- |

@@ -81,11 +81,16 @@
     --input: oklch(0.89 0.01 255);
     --ring: oklch(0.62 0.13 258);
 
-    --chart-1: oklch(0.5 0.17 258);
-    --chart-2: oklch(0.65 0.12 195);
-    --chart-3: oklch(0.72 0.14 75);
-    --chart-4: oklch(0.58 0.15 300);
-    --chart-5: oklch(0.6 0.03 260);
+    /* Chart series — validated with the dataviz palette checker (CVD ΔE 24.7, contrast ≥ 3:1 on white).
+       Income and expense keep the same color in every chart; green/red stay reserved for deltas. */
+    --series-income: #2a78d6;
+    --series-expense: #eb6834;
+    --chart-grid: oklch(0.93 0.006 255);
+    --chart-1: #2a78d6;
+    --chart-2: #eb6834;
+    --chart-3: #1baf7a;
+    --chart-4: #eda100;
+    --chart-5: #6250d6;
 
     --radius: 0.625rem;
 

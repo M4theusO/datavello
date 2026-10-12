@@ -1,12 +1,16 @@
 using System.Text.Json.Serialization;
 using Datavello.Api.Domain;
 using Datavello.Api.Features.Auth;
+using Datavello.Api.Features.Categories;
 using Datavello.Api.Features.Companies;
+using Datavello.Api.Features.Dashboards;
+using Datavello.Api.Features.Transactions;
 using Datavello.Api.Infrastructure.Configuration;
 using Datavello.Api.Infrastructure.Data;
 using Datavello.Api.Infrastructure.Errors;
 using Datavello.Api.Infrastructure.Identity;
 using Datavello.Api.Infrastructure.Security;
+using Datavello.Api.Infrastructure.Seed;
 using Datavello.Api.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -68,6 +72,10 @@ builder.Services.AddAuthorizationBuilder()
 // --- Application services ---
 builder.Services.AddScoped<CompanyProvisioningService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<TransactionService>();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<DemoSeeder>();
 
 // --- API ---
 builder.Services
@@ -98,6 +106,21 @@ builder.Services.AddCors(o => o.AddPolicy(CorsPolicy, p => p
     .AllowCredentials()));
 
 var app = builder.Build();
+
+// Development-only command: dotnet run --project src/Datavello.Api -- seed-demo [--reset]
+if (args.Contains("seed-demo"))
+{
+    if (!app.Environment.IsDevelopment())
+    {
+        Console.Error.WriteLine("seed-demo is only available in the Development environment.");
+        Environment.ExitCode = 1;
+        return;
+    }
+
+    using var scope = app.Services.CreateScope();
+    await scope.ServiceProvider.GetRequiredService<DemoSeeder>().RunAsync(reset: args.Contains("--reset"));
+    return;
+}
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

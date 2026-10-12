@@ -4,7 +4,7 @@
 
 Plataforma SaaS de BI e dashboards para pequenas empresas. Frontend em React + Vite, backend em ASP.NET Core 10 e PostgreSQL.
 
-> Status: **Etapa 2 concluída.** Login, cadastro, modelo multiempresa e layout prontos. Próxima: transações, categorias e dashboard (Etapa 3).
+> Status: **Etapa 3 concluída.** Login, multiempresa, transações, categorias e dashboard com indicadores e gráficos. Próxima: importação de planilhas e personalização do dashboard (Etapa 4).
 > Arquitetura: [docs/architecture.md](docs/architecture.md) · Plano: [docs/implementation-plan.md](docs/implementation-plan.md)
 
 ## Pré-requisitos
@@ -66,6 +66,21 @@ dotnet ef migrations add NomeDaMudanca --project src/Datavello.Api --output-dir 
 - API: <http://localhost:5080>
 - Swagger (apenas em desenvolvimento): <http://localhost:5080/swagger>
 - Health check: <http://localhost:5080/api/health>
+
+### Dados de demonstração (opcional, só em desenvolvimento)
+
+```powershell
+dotnet run --project src/Datavello.Api -- seed-demo          # cria (não faz nada se já existir)
+dotnet run --project src/Datavello.Api -- seed-demo --reset  # apaga e recria apenas os dados de demonstração
+```
+
+Cria a empresa fictícia **Padaria Pão Dourado (dados fictícios)** com ~14 meses de movimentações.
+
+| Ambiente | E-mail | Senha |
+| --- | --- | --- |
+| Somente local | `demo@datavello.local` | `Demo12345` (altere com `Demo__Password` no `.env`) |
+
+Nunca use essas credenciais fora do ambiente local. O comando recusa rodar fora de `Development`.
 
 ## 4. Frontend
 

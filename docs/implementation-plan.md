@@ -30,14 +30,14 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 - [x] Logotipo SVG, tema (tokens de cor), sidebar recolhível, topbar, menu do usuário
 - [x] Telas de login e cadastro integradas; rotas protegidas; página de acesso negado/404
 
-## Etapa 3 — Funcionalidades centrais
+## Etapa 3 — Funcionalidades centrais ✅
 
-- [ ] API de categorias (CRUD, contagem de transações, exclusão bloqueada se houver vínculos)
-- [ ] API de transações (CRUD, busca, filtros, ordenação, paginação)
-- [ ] API de resumo do dashboard (cards, comparação, séries, categorias, saldo, recentes)
-- [ ] Telas: Categorias, Transações (tabela + formulário criar/editar + confirmação de exclusão)
-- [ ] Dashboard com cards, gráficos Recharts, tabela recente e filtros globais
-- [ ] Testes: cálculo de receitas/despesas/saldo, filtros por período, validação, isolamento
+- [x] API de categorias (CRUD, contagem de transações, exclusão bloqueada se houver vínculos)
+- [x] API de transações (CRUD, busca, filtros, ordenação, paginação)
+- [x] API de resumo do dashboard (cards, comparação, séries, categorias, saldo, recentes)
+- [x] Telas: Categorias, Transações (tabela + formulário criar/editar + confirmação de exclusão)
+- [x] Dashboard com cards, gráficos Recharts, tabela recente e filtros globais
+- [x] Testes: cálculo de receitas/despesas/saldo, filtros por período, validação, isolamento
 
 ## Etapa 4 — Importação e personalização
 
@@ -57,6 +57,6 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 
 ## Etapa 6 — Execução local
 
-- [ ] Seed de demonstração idempotente (`seed-demo`)
+- [x] Seed de demonstração idempotente (`seed-demo`, antecipado na Etapa 3 para validar o dashboard)
 - [ ] README com comandos exatos para Windows (PowerShell): banco, dependências, migrations, seed, backend, frontend, testes
 - [ ] Verificação ponta a ponta seguindo o README do zero

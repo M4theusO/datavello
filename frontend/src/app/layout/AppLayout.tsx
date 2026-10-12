@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { Outlet, useMatches } from "react-router"
+import { Outlet, useMatches, useNavigation } from "react-router"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import type { RouteHandle } from "@/app/navigation"
@@ -19,6 +19,7 @@ function usePageTitle(): string {
 
 export function AppLayout() {
   const title = usePageTitle()
+  const navigation = useNavigation()
 
   useEffect(() => {
     document.title = title === "Datavello" ? "Datavello" : `${title} · Datavello`
@@ -28,6 +29,9 @@ export function AppLayout() {
     <SidebarProvider defaultOpen={sidebarStartsOpen()}>
       <AppSidebar />
       <SidebarInset className="min-w-0">
+        {navigation.state === "loading" && (
+          <div className="fixed inset-x-0 top-0 z-50 h-0.5 animate-pulse bg-primary" role="progressbar" aria-label="Carregando página" />
+        )}
         <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b bg-background/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/70 md:px-6">
           <SidebarTrigger className="-ml-1" aria-label="Expandir ou recolher menu" />
           <Separator orientation="vertical" className="h-5" />
