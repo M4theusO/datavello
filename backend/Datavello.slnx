@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Datavello.Api/Datavello.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Datavello.Tests/Datavello.Tests.csproj" />
+  </Folder>
+</Solution>
