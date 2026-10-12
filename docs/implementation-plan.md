@@ -56,8 +56,10 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 - [x] Execução completa dos testes e correções
 - [x] Testes unitários do frontend (Vitest) e auditoria de dependências (0 vulnerabilidades)
 
-## Etapa 6 — Execução local
+## Etapa 6 — Execução local ✅
 
 - [x] Seed de demonstração idempotente (`seed-demo`, antecipado na Etapa 3 para validar o dashboard)
-- [ ] README com comandos exatos para Windows (PowerShell): banco, dependências, migrations, seed, backend, frontend, testes
-- [ ] Verificação ponta a ponta seguindo o README do zero
+- [x] README com comandos exatos para Windows (PowerShell): banco, dependências, migrations, seed, backend, frontend, testes
+- [x] Verificação ponta a ponta seguindo o README do zero
+- [x] `dotnet-ef` fixado no projeto (`backend/dotnet-tools.json`) e scripts `scripts/setup.ps1` / `scripts/dev.ps1`
+- [x] Verificação a partir de uma cópia limpa do repositório e de um banco vazio: setup, migrations, seed, aplicação no ar, login de demonstração, dashboard e 153 + 31 testes aprovados
