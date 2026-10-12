@@ -42,4 +42,24 @@ public sealed record DashboardSummary(
 
 public sealed record WidgetConfigDto(string Type, int Position, bool IsEnabled);
 
+public sealed class WidgetSetting
+{
+    /// <example>chart-monthly</example>
+    [Required(ErrorMessage = "Informe o widget.")]
+    public string Type { get; init; } = string.Empty;
+
+    public bool IsEnabled { get; init; }
+}
+
+/// <summary>Widgets in the desired order; any widget left out is kept at the end, disabled.</summary>
+public sealed class UpdateDashboardConfigRequest
+{
+    [Required(ErrorMessage = "Informe o período padrão.")]
+    [EnumDataType(typeof(DashboardPeriod), ErrorMessage = "Período padrão inválido.")]
+    public DashboardPeriod? DefaultPeriod { get; init; }
+
+    [Required(ErrorMessage = "Informe os widgets.")]
+    public List<WidgetSetting> Widgets { get; init; } = [];
+}
+
 public sealed record DashboardConfigDto(Guid Id, string Name, DashboardPeriod DefaultPeriod, IReadOnlyList<WidgetConfigDto> Widgets);

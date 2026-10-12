@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api"
 import type { PeriodPreset } from "@/lib/periods"
 import { toQueryString, type Transaction, type TransactionType } from "@/features/transactions/api"
@@ -75,5 +75,26 @@ export function useDashboardConfig() {
     queryKey: ["dashboard", "config"],
     queryFn: ({ signal }) => api.get<DashboardConfig>("/dashboard/config", signal),
     staleTime: 5 * 60 * 1000,
+  })
+}
+
+export interface DashboardConfigInput {
+  defaultPeriod: DashboardConfig["defaultPeriod"]
+  widgets: { type: WidgetType; isEnabled: boolean }[]
+}
+
+export function useSaveDashboardConfig() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: DashboardConfigInput) => api.put<DashboardConfig>("/dashboard/config", input),
+    onSuccess: (config) => queryClient.setQueryData(["dashboard", "config"], config),
+  })
+}
+
+export function useResetDashboardConfig() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.post<DashboardConfig>("/dashboard/config/reset"),
+    onSuccess: (config) => queryClient.setQueryData(["dashboard", "config"], config),
   })
 }

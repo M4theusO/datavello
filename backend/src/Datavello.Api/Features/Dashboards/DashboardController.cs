@@ -23,4 +23,15 @@ public sealed class DashboardController(DashboardService dashboard) : Controller
     /// <summary>Widgets do dashboard da empresa (ordem e ativação) e período padrão.</summary>
     [HttpGet("config")]
     public Task<DashboardConfigDto> Config(CancellationToken ct) => dashboard.GetConfigAsync(ct);
+
+    /// <summary>Salva a ordem, os widgets ativos e o período padrão do dashboard.</summary>
+    /// <remarks>Widgets não enviados são mantidos no final, desativados.</remarks>
+    [HttpPut("config")]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public Task<DashboardConfigDto> UpdateConfig(UpdateDashboardConfigRequest request, CancellationToken ct) =>
+        dashboard.UpdateConfigAsync(request, ct);
+
+    /// <summary>Restaura o layout padrão (widgets e período) do modelo do dashboard.</summary>
+    [HttpPost("config/reset")]
+    public Task<DashboardConfigDto> ResetConfig(CancellationToken ct) => dashboard.ResetConfigAsync(ct);
 }

@@ -4,8 +4,8 @@
 
 Plataforma SaaS de BI e dashboards para pequenas empresas. Frontend em React + Vite, backend em ASP.NET Core 10 e PostgreSQL.
 
-> Status: **Etapa 3 concluída.** Login, multiempresa, transações, categorias e dashboard com indicadores e gráficos. Próxima: importação de planilhas e personalização do dashboard (Etapa 4).
-> Arquitetura: [docs/architecture.md](docs/architecture.md) · Plano: [docs/implementation-plan.md](docs/implementation-plan.md)
+> Status: **Etapa 4 concluída.** Login, multiempresa, transações, categorias, dashboard, importação de CSV/XLSX e personalização do dashboard. Próxima: configurações, perfil, revisão de segurança e acabamento (Etapa 5).
+> Arquitetura: [docs/architecture.md](docs/architecture.md) · Plano: [docs/implementation-plan.md](docs/implementation-plan.md) · Importação: [docs/data-import.md](docs/data-import.md)
 
 ## Pré-requisitos
 

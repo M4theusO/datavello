@@ -46,12 +46,22 @@ export const router = createBrowserRouter([
               {
                 path: "importar",
                 handle: handle("Importar dados"),
-                element: <ComingSoonPage stage="Etapa 4" description="Importação de planilhas Excel (.xlsx) e CSV, com histórico." />,
+                lazy: async () => ({ Component: (await import("@/features/imports/ImportPage")).ImportPage }),
+              },
+              {
+                path: "importar/historico",
+                handle: handle("Histórico de importações"),
+                lazy: async () => ({ Component: (await import("@/features/imports/ImportHistoryPage")).ImportHistoryPage }),
+              },
+              {
+                path: "importar/historico/:id",
+                handle: handle("Detalhes da importação"),
+                lazy: async () => ({ Component: (await import("@/features/imports/ImportDetailPage")).ImportDetailPage }),
               },
               {
                 path: "personalizar",
                 handle: handle("Personalizar dashboard"),
-                element: <ComingSoonPage stage="Etapa 4" description="Escolha, ordene e ative os widgets do seu dashboard." />,
+                lazy: async () => ({ Component: (await import("@/features/dashboard/CustomizePage")).CustomizePage }),
               },
               {
                 path: "configuracoes",

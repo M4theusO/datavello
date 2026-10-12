@@ -4,6 +4,7 @@ using Datavello.Api.Features.Auth;
 using Datavello.Api.Features.Categories;
 using Datavello.Api.Features.Companies;
 using Datavello.Api.Features.Dashboards;
+using Datavello.Api.Features.Imports;
 using Datavello.Api.Features.Transactions;
 using Datavello.Api.Infrastructure.Configuration;
 using Datavello.Api.Infrastructure.Data;
@@ -76,6 +77,8 @@ builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<TransactionService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<DemoSeeder>();
+builder.Services.Configure<ImportSettings>(builder.Configuration.GetSection(ImportSettings.Section));
+builder.Services.AddScoped<ImportService>();
 
 // --- API ---
 builder.Services

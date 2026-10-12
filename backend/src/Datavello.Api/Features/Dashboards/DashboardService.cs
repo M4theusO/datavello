@@ -52,11 +52,82 @@ public sealed class DashboardService(AppDbContext db, ICurrentTenant tenant)
     public async Task<DashboardConfigDto> GetConfigAsync(CancellationToken ct)
     {
         tenant.RequireCompanyId();
-        var dashboard = await db.Dashboards.AsNoTracking()
-            .Include(d => d.Widgets)
-            .OrderByDescending(d => d.IsDefault).ThenBy(d => d.CreatedAt)
-            .FirstOrDefaultAsync(ct) ?? throw AppException.NotFound("Dashboard não encontrado.");
+        return ToConfig(await LoadDashboardAsync(track: false, ct));
+    }
 
+    /// <summary>Saves order, enabled widgets and default period. Widgets not listed are appended disabled.</summary>
+    public async Task<DashboardConfigDto> UpdateConfigAsync(UpdateDashboardConfigRequest request, CancellationToken ct)
+    {
+        tenant.RequireCompanyId();
+        var unknown = request.Widgets.Select(w => w.Type).Where(t => !WidgetCatalog.IsKnown(t)).ToList();
+        if (unknown.Count > 0)
+        {
+            throw AppException.BadRequest($"Widget desconhecido: {string.Join(", ", unknown)}.");
+        }
+
+        if (request.Widgets.Select(w => w.Type).Distinct().Count() != request.Widgets.Count)
+        {
+            throw AppException.BadRequest("Cada widget pode aparecer apenas uma vez.");
+        }
+
+        var ordered = request.Widgets.Select(w => (w.Type, w.IsEnabled))
+            .Concat(WidgetCatalog.All.Where(t => request.Widgets.All(w => w.Type != t)).Select(t => (Type: t, IsEnabled: false)))
+            .ToList();
+
+        var dashboard = await LoadDashboardAsync(track: true, ct);
+        dashboard.DefaultPeriod = request.DefaultPeriod!.Value;
+        ApplyWidgets(dashboard, ordered);
+        await db.SaveChangesAsync(ct);
+        return ToConfig(dashboard);
+    }
+
+    /// <summary>Restores widgets and default period from the dashboard's template.</summary>
+    public async Task<DashboardConfigDto> ResetConfigAsync(CancellationToken ct)
+    {
+        tenant.RequireCompanyId();
+        var dashboard = await LoadDashboardAsync(track: true, ct);
+        var templates = db.DashboardTemplates.AsNoTracking();
+        var template = dashboard.TemplateId is { } templateId
+            ? await templates.SingleAsync(t => t.Id == templateId, ct)
+            : await templates.SingleAsync(t => t.Key == DashboardTemplateConfiguration.DefaultFinancialTemplateKey, ct);
+
+        dashboard.DefaultPeriod = template.DefaultPeriod;
+        ApplyWidgets(dashboard, template.Widgets
+            .Select(t => (t, true))
+            .Concat(WidgetCatalog.All.Where(t => !template.Widgets.Contains(t)).Select(t => (t, false)))
+            .ToList());
+        await db.SaveChangesAsync(ct);
+        return ToConfig(dashboard);
+    }
+
+    private async Task<Dashboard> LoadDashboardAsync(bool track, CancellationToken ct)
+    {
+        var query = db.Dashboards.Include(d => d.Widgets).OrderByDescending(d => d.IsDefault).ThenBy(d => d.CreatedAt);
+        return await (track ? query : query.AsNoTracking()).FirstOrDefaultAsync(ct)
+            ?? throw AppException.NotFound("Dashboard não encontrado.");
+    }
+
+    /// <summary>Updates the existing rows in place (one per widget type) and adds any that are missing.</summary>
+    private void ApplyWidgets(Dashboard dashboard, IReadOnlyList<(string Type, bool IsEnabled)> ordered)
+    {
+        var byType = dashboard.Widgets.ToDictionary(w => w.WidgetType);
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            var (type, enabled) = ordered[i];
+            if (!byType.TryGetValue(type, out var widget))
+            {
+                widget = new WidgetConfig { DashboardId = dashboard.Id, WidgetType = type };
+                db.WidgetConfigs.Add(widget);
+                dashboard.Widgets.Add(widget);
+            }
+
+            widget.Position = i;
+            widget.IsEnabled = enabled;
+        }
+    }
+
+    private static DashboardConfigDto ToConfig(Dashboard dashboard)
+    {
         var widgets = dashboard.Widgets
             .Where(w => WidgetCatalog.IsKnown(w.WidgetType))
             .OrderBy(w => w.Position)

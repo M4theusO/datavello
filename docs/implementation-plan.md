@@ -39,14 +39,14 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 - [x] Dashboard com cards, gráficos Recharts, tabela recente e filtros globais
 - [x] Testes: cálculo de receitas/despesas/saldo, filtros por período, validação, isolamento
 
-## Etapa 4 — Importação e personalização
+## Etapa 4 — Importação e personalização ✅
 
-- [ ] Parsers CSV (CsvHelper, detecção de delimitador `;`/`,`, UTF-8/Latin-1) e XLSX (ClosedXML)
-- [ ] Upload → prévia → mapeamento → validação → confirmação transacional
-- [ ] Detecção de duplicidade + `docs/data-import.md`
-- [ ] Histórico de importações com erros por linha
-- [ ] Personalização: ativar/desativar, reordenar, período padrão, salvar, restaurar padrão
-- [ ] Testes: CSV, XLSX, linhas inválidas, duplicidade, persistência dos widgets
+- [x] Parsers CSV (CsvHelper, detecção de delimitador `;`/`,`, UTF-8/Latin-1) e XLSX (ClosedXML)
+- [x] Upload → prévia → mapeamento → validação → confirmação transacional
+- [x] Detecção de duplicidade + `docs/data-import.md`
+- [x] Histórico de importações com erros por linha
+- [x] Personalização: ativar/desativar, reordenar, período padrão, salvar, restaurar padrão
+- [x] Testes: CSV, XLSX, linhas inválidas, duplicidade, persistência dos widgets
 
 ## Etapa 5 — Testes e acabamento
 

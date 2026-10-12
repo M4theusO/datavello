@@ -154,5 +154,74 @@ public sealed class DashboardApiTests(TestDatabase database) : IDisposable
         Assert.All(config.Widgets, w => Assert.True(w.IsEnabled));
     }
 
+    [Fact]
+    public async Task Config_changes_are_persisted_and_can_be_reset()
+    {
+        var (client, _) = await _factory.RegisterAsync();
+
+        var saved = await (await client.PutJsonAsync("/api/dashboard/config", new
+        {
+            defaultPeriod = DashboardPeriod.ThisYear,
+            widgets = new object[]
+            {
+                new { type = WidgetCatalog.ChartMonthly, isEnabled = true },
+                new { type = WidgetCatalog.KpiBalance, isEnabled = true },
+                new { type = WidgetCatalog.TableRecent, isEnabled = false }
+            }
+        })).ReadAsync<DashboardConfigDto>();
+
+        // Listed widgets keep the given order; the rest follow, disabled.
+        Assert.Equal(DashboardPeriod.ThisYear, saved.DefaultPeriod);
+        Assert.Equal([WidgetCatalog.ChartMonthly, WidgetCatalog.KpiBalance, WidgetCatalog.TableRecent], saved.Widgets.Take(3).Select(w => w.Type));
+        Assert.Equal(WidgetCatalog.All.Count, saved.Widgets.Count);
+        Assert.Equal([WidgetCatalog.ChartMonthly, WidgetCatalog.KpiBalance], saved.Widgets.Where(w => w.IsEnabled).Select(w => w.Type));
+
+        var reloaded = await client.GetJsonAsync<DashboardConfigDto>("/api/dashboard/config");
+        Assert.Equal(saved, reloaded with { Widgets = saved.Widgets });
+        Assert.Equal(saved.Widgets, reloaded.Widgets);
+
+        var reset = await (await client.PostAsync("/api/dashboard/config/reset", null)).ReadAsync<DashboardConfigDto>();
+        Assert.Equal(DashboardPeriod.Last6Months, reset.DefaultPeriod);
+        Assert.Equal(WidgetCatalog.All, reset.Widgets.Select(w => w.Type));
+        Assert.All(reset.Widgets, w => Assert.True(w.IsEnabled));
+    }
+
+    [Fact]
+    public async Task Config_rejects_unknown_or_repeated_widgets()
+    {
+        var (client, _) = await _factory.RegisterAsync();
+
+        var unknown = await client.PutJsonAsync("/api/dashboard/config", new
+        {
+            defaultPeriod = DashboardPeriod.ThisMonth,
+            widgets = new object[] { new { type = "chart-sql-livre", isEnabled = true } }
+        });
+        var repeated = await client.PutJsonAsync("/api/dashboard/config", new
+        {
+            defaultPeriod = DashboardPeriod.ThisMonth,
+            widgets = new object[] { new { type = WidgetCatalog.KpiIncome, isEnabled = true }, new { type = WidgetCatalog.KpiIncome, isEnabled = false } }
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, unknown.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, repeated.StatusCode);
+    }
+
+    [Fact]
+    public async Task Config_of_one_company_does_not_affect_another()
+    {
+        var (clientA, _) = await _factory.RegisterAsync("Empresa A");
+        var (clientB, _) = await _factory.RegisterAsync("Empresa B");
+
+        (await clientA.PutJsonAsync("/api/dashboard/config", new
+        {
+            defaultPeriod = DashboardPeriod.LastMonth,
+            widgets = new object[] { new { type = WidgetCatalog.KpiCount, isEnabled = true } }
+        })).EnsureSuccessStatusCode();
+
+        var configB = await clientB.GetJsonAsync<DashboardConfigDto>("/api/dashboard/config");
+        Assert.Equal(DashboardPeriod.Last6Months, configB.DefaultPeriod);
+        Assert.All(configB.Widgets, w => Assert.True(w.IsEnabled));
+    }
+
     public void Dispose() => _factory.Dispose();
 }
