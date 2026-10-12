@@ -67,8 +67,14 @@ builder.Services.ConfigureApplicationCookie(o =>
     o.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = StatusCodes.Status403Forbidden; return Task.CompletedTask; };
 });
 
+// After a password change the security stamp rotates; other sessions are rejected at the next check.
+builder.Services.Configure<SecurityStampValidatorOptions>(o =>
+    o.ValidationInterval = TimeSpan.FromSeconds(builder.Configuration.GetValue("Auth:SecurityStampValidationSeconds", 60)));
+
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+
+builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 // --- Application services ---
 builder.Services.AddScoped<CompanyProvisioningService>();
@@ -127,6 +133,14 @@ if (args.Contains("seed-demo"))
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+if (app.Environment.IsProduction())
+{
+    // Behind a TLS-terminating proxy, configure forwarded headers as well (see README).
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -136,6 +150,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors(CorsPolicy);
 app.UseMiddleware<RequireClientHeaderMiddleware>();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseAuthorization();

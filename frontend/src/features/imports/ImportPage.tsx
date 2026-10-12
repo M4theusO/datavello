@@ -45,9 +45,9 @@ export function ImportPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <ImportTabs />
-        <ol className="flex items-center gap-2 text-sm" aria-label="Etapas da importação">
+        <ol className="flex flex-wrap items-center gap-2 text-sm" aria-label="Etapas da importação">
           {steps.map((s, i) => (
             <li key={s.key} className="flex items-center gap-2" aria-current={i === currentIndex ? "step" : undefined}>
               <span
@@ -60,8 +60,8 @@ export function ImportPage() {
               >
                 {i < currentIndex ? <Check className="size-3.5" aria-hidden="true" /> : i + 1}
               </span>
-              <span className={cn("hidden md:inline", i === currentIndex ? "font-medium" : "text-muted-foreground")}>{s.label}</span>
-              {i < steps.length - 1 && <span className="h-px w-4 bg-border md:w-6" aria-hidden="true" />}
+              <span className={cn("hidden sm:inline", i === currentIndex ? "font-medium" : "text-muted-foreground")}>{s.label}</span>
+              {i < steps.length - 1 && <span className="h-px w-4 bg-border sm:w-6" aria-hidden="true" />}
             </li>
           ))}
         </ol>

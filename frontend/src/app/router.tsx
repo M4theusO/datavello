@@ -2,7 +2,7 @@ import { createBrowserRouter, Outlet } from "react-router"
 import { FullPageLoader } from "@/components/feedback"
 import { AppLayout } from "@/app/layout/AppLayout"
 import type { RouteHandle } from "@/app/navigation"
-import { AccessDeniedPage, ComingSoonPage, NotFoundPage } from "@/app/pages/StatusPages"
+import { AccessDeniedPage, NotFoundPage } from "@/app/pages/StatusPages"
 import { GuestOnly, RequireAuth } from "@/features/auth/guards"
 import { LoginPage } from "@/features/auth/LoginPage"
 import { RegisterPage } from "@/features/auth/RegisterPage"
@@ -66,12 +66,12 @@ export const router = createBrowserRouter([
               {
                 path: "configuracoes",
                 handle: handle("Configurações"),
-                element: <ComingSoonPage stage="Etapa 5" description="Dados e preferências da empresa." />,
+                lazy: async () => ({ Component: (await import("@/features/settings/SettingsPage")).SettingsPage }),
               },
               {
                 path: "perfil",
                 handle: handle("Perfil do usuário"),
-                element: <ComingSoonPage stage="Etapa 5" description="Seus dados pessoais e troca de senha." />,
+                lazy: async () => ({ Component: (await import("@/features/settings/ProfilePage")).ProfilePage }),
               },
               { path: "acesso-negado", handle: handle("Acesso negado"), element: <AccessDeniedPage /> },
               { path: "*", handle: handle("Página não encontrada"), element: <NotFoundPage /> },

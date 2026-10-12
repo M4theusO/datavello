@@ -48,12 +48,13 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 - [x] Personalização: ativar/desativar, reordenar, período padrão, salvar, restaurar padrão
 - [x] Testes: CSV, XLSX, linhas inválidas, duplicidade, persistência dos widgets
 
-## Etapa 5 — Testes e acabamento
+## Etapa 5 — Testes e acabamento ✅
 
-- [ ] Configurações da empresa e perfil do usuário (incluindo troca de senha)
-- [ ] Revisão de segurança e isolamento (todos os endpoints)
-- [ ] Responsividade (desktop/tablet/celular), estados vazios, mensagens de erro
-- [ ] Execução completa dos testes e correções
+- [x] Configurações da empresa e perfil do usuário (incluindo troca de senha)
+- [x] Revisão de segurança e isolamento (todos os endpoints)
+- [x] Responsividade (desktop/tablet/celular), estados vazios, mensagens de erro
+- [x] Execução completa dos testes e correções
+- [x] Testes unitários do frontend (Vitest) e auditoria de dependências (0 vulnerabilidades)
 
 ## Etapa 6 — Execução local
 

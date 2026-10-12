@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Construction, FileQuestion, ShieldX } from "lucide-react"
+import { FileQuestion, ShieldX } from "lucide-react"
 import { Link } from "react-router"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -45,17 +45,6 @@ export function AccessDeniedPage() {
       title="Acesso negado"
       description="Você não tem permissão para acessar este recurso ou ele pertence a outra empresa."
       action={backHome}
-    />
-  )
-}
-
-/** Marks a screen that exists in the navigation but is not implemented yet (explicitly, per the MVP rules). */
-export function ComingSoonPage({ stage, description }: { stage: string; description: string }) {
-  return (
-    <StatusCard
-      icon={<Construction />}
-      title="Em desenvolvimento"
-      description={`${description} Esta tela será liberada na ${stage} do MVP.`}
     />
   )
 }

@@ -126,6 +126,22 @@ Vários usuários por empresa já são suportados pelo modelo (`CompanyMember.Ro
 - **Segredos:** connection string e senhas em `.env` (ignorado pelo Git) ou variáveis de ambiente; `.env.example` só com placeholders. Em desenvolvimento o backend carrega `.env` da raiz com um leitor mínimo próprio (sem dependência extra).
 - Swagger exposto apenas em `Development`.
 
+### Revisão de segurança (Etapa 5)
+
+| Controle | Implementação | Verificado por |
+| --- | --- | --- |
+| Autenticação obrigatória | Política de fallback `RequireAuthenticatedUser`; apenas `health`, `register`, `login` e `logout` são públicos | Teste que percorre **todos** os endpoints da API e exige 401 sem login |
+| Isolamento entre empresas | Filtro global do EF + bloqueio de escrita cruzada + validação de referências + empresa ativa resolvida no servidor | Testes de leitura/edição/exclusão/referência cruzada em categorias, transações, dashboard, importações e configurações |
+| Revogação de acesso | Associação à empresa conferida a cada requisição; usuário excluído perde a sessão | Testes de membro removido (403 imediato) e usuário excluído (401) |
+| Força bruta | Lockout por conta (5 tentativas / 15 min) + limite por IP em login e cadastro (`RateLimiting__AuthPermitPerMinute`, padrão 10/min, resposta 429) | Testes de lockout e de limite por IP |
+| Troca de senha | Exige a senha atual; renova o *security stamp* (outras sessões caem em até `Auth__SecurityStampValidationSeconds`, padrão 60 s) e mantém a sessão atual | Teste com duas sessões simultâneas |
+| Permissões na empresa | Apenas o proprietário altera nome/CPF/CNPJ; CPF/CNPJ com dígitos verificadores validados | Testes de membro (403) e documentos inválidos |
+| Cabeçalhos | `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`; respostas `/api` com CSP `default-src 'none'` e `Cache-Control: no-store` | Teste de cabeçalhos |
+| Transporte | Em `Production`: HSTS + redirecionamento HTTPS + cookie `Secure` obrigatório | Configuração |
+| Dependências | `dotnet list package --vulnerable` e `npm audit`: **0 vulnerabilidades**. O CLI do shadcn (que trazia 7 alertas em ferramentas de build) deixou de ser dependência; o CSS base foi copiado para `frontend/src/styles/shadcn.css` | Auditoria executada |
+
+**Para produção (fora do MVP local):** servir o frontend com CSP própria (`script-src 'self'`), configurar `ForwardedHeaders` se houver proxy reverso terminando TLS, guardar segredos em um cofre (não em `.env`) e manter `Cors__AllowedOrigins` apenas com o domínio do frontend.
+
 ## 8. API (convenções)
 
 - REST por recurso sob `/api`, JSON em camelCase, datas `yyyy-MM-dd` na API (a UI formata `DD/MM/AAAA`), valores monetários como número decimal.

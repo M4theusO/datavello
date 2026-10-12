@@ -4,7 +4,7 @@
 
 Plataforma SaaS de BI e dashboards para pequenas empresas. Frontend em React + Vite, backend em ASP.NET Core 10 e PostgreSQL.
 
-> Status: **Etapa 4 concluída.** Login, multiempresa, transações, categorias, dashboard, importação de CSV/XLSX e personalização do dashboard. Próxima: configurações, perfil, revisão de segurança e acabamento (Etapa 5).
+> Status: **Etapa 5 concluída.** MVP completo: login, multiempresa, transações, categorias, dashboard, importação CSV/XLSX, personalização, configurações e perfil. Próxima: roteiro final de execução local no Windows (Etapa 6).
 > Arquitetura: [docs/architecture.md](docs/architecture.md) · Plano: [docs/implementation-plan.md](docs/implementation-plan.md) · Importação: [docs/data-import.md](docs/data-import.md)
 
 ## Pré-requisitos
@@ -105,6 +105,29 @@ Os testes de integração usam o banco `datavello_test` (connection string `Conn
 
 ```powershell
 cd frontend
+npm test        # testes unitários (Vitest)
 npm run lint
 npm run build
+```
+
+## 6. Configurações opcionais
+
+Todas podem ser definidas no `.env` (desenvolvimento) ou como variáveis de ambiente:
+
+| Variável | Padrão | Uso |
+| --- | --- | --- |
+| `Import__MaxFileSizeBytes` | 5242880 (5 MB) | Tamanho máximo de planilha |
+| `Import__MaxRows` | 5000 | Linhas de dados por arquivo |
+| `RateLimiting__AuthPermitPerMinute` | 10 | Tentativas de login/cadastro por IP por minuto |
+| `Auth__SecurityStampValidationSeconds` | 60 | Tempo máximo até outras sessões caírem após troca de senha |
+| `Cors__AllowedOrigins__0` | — | Origem do frontend, se servido em outro domínio |
+| `Demo__Password` | Demo12345 | Senha do usuário de demonstração (somente local) |
+
+## 7. Componentes de interface
+
+Os componentes em `frontend/src/components/ui` vêm do [shadcn/ui](https://ui.shadcn.com) e fazem parte do código do projeto. Para adicionar um novo, sem instalar o CLI como dependência:
+
+```powershell
+cd frontend
+npx shadcn@4.21.4 add <componente>
 ```

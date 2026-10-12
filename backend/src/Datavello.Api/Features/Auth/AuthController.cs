@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using Datavello.Api.Infrastructure.Security;
 using Datavello.Api.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Datavello.Api.Features.Auth;
 
@@ -13,6 +15,7 @@ public sealed class AuthController(AuthService auth, ICurrentTenant tenant) : Co
     /// <summary>Cria a conta, a empresa (com categorias e dashboard padrão) e inicia a sessão.</summary>
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting(AuthRateLimiting.Policy)]
     [ProducesResponseType<MeResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
@@ -25,6 +28,7 @@ public sealed class AuthController(AuthService auth, ICurrentTenant tenant) : Co
     /// <summary>Inicia a sessão (cookie HttpOnly).</summary>
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(AuthRateLimiting.Policy)]
     [ProducesResponseType<MeResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
