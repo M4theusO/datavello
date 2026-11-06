@@ -78,6 +78,7 @@ builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 // --- Application services ---
 builder.Services.AddScoped<CompanyProvisioningService>();
+builder.Services.AddScoped<TeamService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<TransactionService>();

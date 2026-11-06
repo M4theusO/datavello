@@ -1,5 +1,6 @@
 using Datavello.Api.Domain;
 using Datavello.Api.Infrastructure.Data;
+using Datavello.Api.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datavello.Api.Features.Companies;
@@ -8,7 +9,7 @@ namespace Datavello.Api.Features.Companies;
 /// Creates a ready-to-use company: owner membership, default categories and the
 /// default dashboard. Adds entities to the context; the caller saves (inside its transaction).
 /// </summary>
-public sealed class CompanyProvisioningService(AppDbContext db)
+public sealed class CompanyProvisioningService(AppDbContext db, CurrentTenant tenant)
 {
     public static readonly IReadOnlyList<(string Name, CategoryKind Kind)> DefaultCategories =
     [
@@ -27,6 +28,9 @@ public sealed class CompanyProvisioningService(AppDbContext db)
     public async Task<Company> ProvisionAsync(AppUser owner, string companyName, CancellationToken ct = default)
     {
         var company = new Company { Name = companyName.Trim() };
+
+        // The new company is written inside its own tenant (also when the caller is signed in to another one).
+        tenant.Set(company.Id, owner.Id);
         db.Companies.Add(company);
         db.CompanyMembers.Add(new CompanyMember { CompanyId = company.Id, UserId = owner.Id, Role = CompanyRole.Owner });
 

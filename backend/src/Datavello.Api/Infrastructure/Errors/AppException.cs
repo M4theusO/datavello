@@ -15,6 +15,9 @@ public class AppException(int statusCode, string title, string message) : Except
     public static AppException BadRequest(string message) =>
         new(StatusCodes.Status400BadRequest, "Requisição inválida", message);
 
+    public static AppException Gone(string message) =>
+        new(StatusCodes.Status410Gone, "Indisponível", message);
+
     public static AppException Forbidden(string message = "Você não tem acesso a este recurso.") =>
         new(StatusCodes.Status403Forbidden, "Acesso negado", message);
 }

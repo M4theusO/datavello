@@ -23,6 +23,11 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        // Public: works signed in or out (the page adapts).
+        path: "/convite/:token",
+        lazy: async () => ({ Component: (await import("@/features/companies/InvitationPage")).InvitationPage }),
+      },
+      {
         element: <RequireAuth />,
         children: [
           {

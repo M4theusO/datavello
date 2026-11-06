@@ -63,3 +63,13 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 - [x] Verificação ponta a ponta seguindo o README do zero
 - [x] `dotnet-ef` fixado no projeto (`backend/dotnet-tools.json`) e scripts `scripts/setup.ps1` / `scripts/dev.ps1`
 - [x] Verificação a partir de uma cópia limpa do repositório e de um banco vazio: setup, migrations, seed, aplicação no ar, login de demonstração, dashboard e 153 + 31 testes aprovados
+
+## Etapa 7 — Equipe e várias empresas ✅
+
+- [x] Convites por link (token de uso único, 7 dias, só o hash no banco, vinculado ao e-mail), cancelamento e reenvio
+- [x] Cadastro pelo convite (entra na empresa sem criar uma própria) e aceite com conta existente
+- [x] Lista de membros, remoção pelo proprietário e saída voluntária do membro
+- [x] Criação de outras empresas pelo usuário (`POST /api/companies`)
+- [x] Seletor de empresa ativa na sidebar (escolha por aba, enviada em `X-Company-Id`; preferência lembrada por usuário)
+- [x] Tela para usuário sem empresa; volta automática à empresa padrão quando o acesso é revogado
+- [x] Testes: 11 de integração (convites, papéis, isolamento entre empresas, cabeçalho recusado) + 6 Vitest; fluxo completo verificado no navegador

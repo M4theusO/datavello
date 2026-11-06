@@ -1,43 +1,50 @@
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { AlertCircle, UserPlus } from "lucide-react"
 import { useForm, type Path } from "react-hook-form"
-import { Link, useNavigate } from "react-router"
+import { Link, useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
 import { z } from "zod"
-import { Spinner } from "@/components/feedback"
+import { FullPageLoader, Spinner } from "@/components/feedback"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { ApiError, errorMessage } from "@/lib/api"
-import { useRegister } from "./auth"
+import { useInvitationPreview, useRegister } from "./auth"
 import { AuthLayout } from "./AuthLayout"
 
 // Mirrors the backend rules (RegisterRequest + Identity password options).
-const schema = z
-  .object({
-    fullName: z.string().trim().min(2, "Informe seu nome.").max(150, "Nome muito longo."),
-    companyName: z.string().trim().min(2, "Informe o nome da empresa.").max(150, "Nome muito longo."),
-    email: z.string().trim().min(1, "Informe o e-mail.").pipe(z.email("E-mail inválido.")),
-    password: z
-      .string()
-      .min(8, "A senha deve ter pelo menos 8 caracteres.")
-      .max(128, "A senha deve ter no máximo 128 caracteres.")
-      .regex(/\d/, "A senha deve conter pelo menos um número."),
-    confirmPassword: z.string(),
-  })
-  .refine((v) => v.password === v.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "As senhas não coincidem.",
-  })
+// With an invitation the account joins the inviting company, so no company name is asked.
+function buildSchema(withInvite: boolean) {
+  return z
+    .object({
+      fullName: z.string().trim().min(2, "Informe seu nome.").max(150, "Nome muito longo."),
+      companyName: withInvite ? z.string() : z.string().trim().min(2, "Informe o nome da empresa.").max(150, "Nome muito longo."),
+      email: z.string().trim().min(1, "Informe o e-mail.").pipe(z.email("E-mail inválido.")),
+      password: z
+        .string()
+        .min(8, "A senha deve ter pelo menos 8 caracteres.")
+        .max(128, "A senha deve ter no máximo 128 caracteres.")
+        .regex(/\d/, "A senha deve conter pelo menos um número."),
+      confirmPassword: z.string(),
+    })
+    .refine((v) => v.password === v.confirmPassword, {
+      path: ["confirmPassword"],
+      message: "As senhas não coincidem.",
+    })
+}
 
-type FormValues = z.infer<typeof schema>
+type FormValues = z.infer<ReturnType<typeof buildSchema>>
 const serverFields: Path<FormValues>[] = ["fullName", "companyName", "email", "password"]
 
 export function RegisterPage() {
   const navigate = useNavigate()
   const register = useRegister()
+  const [params] = useSearchParams()
+  const inviteToken = params.get("convite")
+  const invitation = useInvitationPreview(inviteToken)
+  const schema = useMemo(() => buildSchema(!!inviteToken), [inviteToken])
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -49,10 +56,27 @@ export function RegisterPage() {
     document.title = "Criar conta · Datavello"
   }, [])
 
+  // The invitation is tied to one e-mail: fill it in (read-only).
+  useEffect(() => {
+    if (invitation.data) form.setValue("email", invitation.data.email)
+  }, [invitation.data, form])
+
+  if (inviteToken && invitation.isPending) return <FullPageLoader />
+
+  if (inviteToken && invitation.isError) {
+    return (
+      <AuthLayout title="Convite indisponível" description={errorMessage(invitation.error)}>
+        <Link to="/cadastro" className={buttonVariants({ variant: "outline", className: "w-full" })}>
+          Criar conta sem convite
+        </Link>
+      </AuthLayout>
+    )
+  }
+
   const onSubmit = form.handleSubmit(async ({ fullName, companyName, email, password }) => {
     try {
-      await register.mutateAsync({ fullName, companyName, email, password })
-      toast.success("Conta criada! Bem-vindo(a) ao Datavello.")
+      await register.mutateAsync(inviteToken ? { fullName, email, password, inviteToken } : { fullName, companyName, email, password })
+      toast.success(invitation.data ? `Conta criada! Você agora faz parte de ${invitation.data.companyName}.` : "Conta criada! Bem-vindo(a) ao Datavello.")
       navigate("/", { replace: true })
     } catch (error) {
       if (error instanceof ApiError) {
@@ -69,7 +93,14 @@ export function RegisterPage() {
   const generalError = register.isError && !(register.error instanceof ApiError && register.error.status === 409)
 
   return (
-    <AuthLayout title="Crie sua conta" description="Leva menos de um minuto. Sua empresa já começa com categorias e um dashboard prontos.">
+    <AuthLayout
+      title="Crie sua conta"
+      description={
+        invitation.data
+          ? `${invitation.data.invitedBy} convidou você para ${invitation.data.companyName}. Ao criar a conta, você entra direto na empresa.`
+          : "Leva menos de um minuto. Sua empresa já começa com categorias e um dashboard prontos."
+      }
+    >
       <form onSubmit={onSubmit} noValidate className="space-y-6">
         {generalError && (
           <Alert variant="destructive">
@@ -85,16 +116,31 @@ export function RegisterPage() {
             <FieldError errors={[errors.fullName]} />
           </Field>
 
-          <Field data-invalid={!!errors.companyName}>
-            <FieldLabel htmlFor="companyName">Nome da empresa</FieldLabel>
-            <Input id="companyName" autoComplete="organization" className="h-10" aria-invalid={!!errors.companyName} {...form.register("companyName")} />
-            <FieldError errors={[errors.companyName]} />
-          </Field>
+          {!inviteToken && (
+            <Field data-invalid={!!errors.companyName}>
+              <FieldLabel htmlFor="companyName">Nome da empresa</FieldLabel>
+              <Input id="companyName" autoComplete="organization" className="h-10" aria-invalid={!!errors.companyName} {...form.register("companyName")} />
+              <FieldError errors={[errors.companyName]} />
+            </Field>
+          )}
 
           <Field data-invalid={!!errors.email}>
             <FieldLabel htmlFor="email">E-mail</FieldLabel>
-            <Input id="email" type="email" autoComplete="email" placeholder="voce@empresa.com.br" className="h-10" aria-invalid={!!errors.email} {...form.register("email")} />
-            <FieldError errors={[errors.email]} />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="voce@empresa.com.br"
+              className="h-10"
+              readOnly={!!inviteToken}
+              aria-invalid={!!errors.email}
+              {...form.register("email")}
+            />
+            {errors.email ? (
+              <FieldError errors={[errors.email]} />
+            ) : (
+              inviteToken && <FieldDescription>O convite vale somente para este e-mail.</FieldDescription>
+            )}
           </Field>
 
           <Field data-invalid={!!errors.password}>
@@ -117,7 +163,7 @@ export function RegisterPage() {
 
         <p className="text-center text-sm text-muted-foreground">
           Já tem conta?{" "}
-          <Link to="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link to={inviteToken ? `/login?redirect=${encodeURIComponent(`/convite/${inviteToken}`)}` : "/login"} className="font-medium text-primary underline-offset-4 hover:underline">
             Entrar
           </Link>
         </p>

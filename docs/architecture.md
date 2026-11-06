@@ -81,6 +81,7 @@ Todas as chaves primárias são `Guid` (UUID v7, ordenável), o que evita enumer
 | `User` (Identity) | Global | Email, FullName, hash de senha (Identity) |
 | `Company` | Global | Name, Document (opcional), Currency = BRL, CreatedAt |
 | `CompanyMember` | Global | CompanyId, UserId, Role (`Owner`, `Member`), CreatedAt — único (CompanyId, UserId) |
+| `CompanyInvitation` | Empresa | Email/NormalizedEmail, TokenHash (SHA-256, único), Role, InvitedByUserId, CreatedAt, ExpiresAt, AcceptedAt?, AcceptedByUserId? |
 | `Category` | Empresa | Name, Kind (`Income`, `Expense`, `Both`), IsDefault — único (CompanyId, Name) |
 | `Transaction` | Empresa | Date (`date`), Description, Type (`Income`/`Expense`), Amount (`numeric(18,2)`, sempre positivo), CategoryId, Notes, ImportJobId?, CreatedAt, UpdatedAt |
 | `ImportJob` | Empresa | FileName, FileType, Status, UserId, TotalRows, ImportedRows, RejectedRows, staging (jsonb), mapeamento/opções (jsonb), CreatedAt, CompletedAt |
@@ -102,8 +103,10 @@ Resolução da empresa ativa (`ICurrentTenant`, por requisição):
 
 1. O usuário precisa estar autenticado (cookie de sessão do Identity).
 2. O backend carrega as associações `CompanyMember` do usuário.
-3. Se o cliente enviar o cabeçalho `X-Company-Id`, ele só é aceito se existir associação válida; caso contrário a resposta é **403**. Sem cabeçalho, usa-se a empresa padrão (primeira associação).
-4. Sem nenhuma associação → **403** com orientação para criar a empresa.
+3. Se o cliente enviar o cabeçalho `X-Company-Id`, ele só é aceito se existir associação válida; caso contrário a resposta é **403** com `type: urn:datavello:company-access-denied`. Sem cabeçalho, usa-se a empresa padrão (primeira associação).
+4. Sem nenhuma associação → `/api/auth/me` responde com `activeCompany: null` e os recursos de empresa respondem **403**; o frontend mostra a tela "Você não participa de nenhuma empresa" (criar empresa ou sair).
+
+**Empresa ativa no frontend:** cada aba guarda a sua escolha em memória e a envia em `X-Company-Id` (assim, trocar de empresa numa aba nunca desvia gravações feitas em outra). A última escolha por usuário fica no `localStorage` apenas como preferência para novas abas — o servidor continua validando a associação a cada requisição. Ao trocar, o cache do TanStack Query (exceto a sessão) é descartado e o conteúdo da página é remontado. Se o cabeçalho for recusado (usuário removido da empresa), o cliente descarta a escolha e volta à empresa padrão.
 
 Defesa em profundidade:
 
@@ -113,7 +116,13 @@ Defesa em profundidade:
 - Recursos de outra empresa respondem **404** (não revelam existência).
 - Testes de integração criam duas empresas e verificam leitura, edição, exclusão, referências cruzadas e importação entre elas.
 
-Vários usuários por empresa já são suportados pelo modelo (`CompanyMember.Role`); convites e permissões finas ficam fora do MVP.
+### Equipe e convites
+
+- **Papéis:** `Owner` (altera a empresa, convida, cancela convites e remove membros) e `Member` (vê e lança dados; pode sair da empresa). O proprietário não pode ser removido nem sair. Permissões mais finas continuam fora do escopo.
+- **Convite por link** (o MVP não envia e-mail): o proprietário informa o e-mail e recebe um link `/convite/{token}` para enviar pelo canal que preferir. O token tem 256 bits aleatórios, é exibido **uma única vez** e só o hash SHA-256 é guardado. Vale 7 dias, é de uso único e só pode ser aceito por uma conta com o mesmo e-mail (comparação normalizada). Convidar o mesmo e-mail de novo substitui o link anterior; limite de 50 convites pendentes por empresa.
+- **Aceite:** a pré-visualização (`POST /api/invitations/preview`) é pública e tem limite de requisições por IP; o aceite (`POST /api/invitations/accept`) exige login. Quem não tem conta se cadastra com `inviteToken` e entra direto na empresa, sem criar uma própria. O token trafega no corpo, não na URL da API, para não aparecer em logs de acesso.
+- **Escrita entre empresas:** o aceite e a criação de empresa (`POST /api/companies`) definem a empresa ativa da requisição para a empresa de destino antes de gravar, mantendo a regra de que o `SaveChanges` só grava dentro da empresa ativa.
+- Endpoints de equipe: `GET /api/company/members`, `DELETE /api/company/members/{userId}`, `POST /api/company/leave`, `GET|POST /api/company/invitations`, `DELETE /api/company/invitations/{id}`.
 
 ## 7. Autenticação e segurança
 
@@ -130,7 +139,7 @@ Vários usuários por empresa já são suportados pelo modelo (`CompanyMember.Ro
 
 | Controle | Implementação | Verificado por |
 | --- | --- | --- |
-| Autenticação obrigatória | Política de fallback `RequireAuthenticatedUser`; apenas `health`, `register`, `login` e `logout` são públicos | Teste que percorre **todos** os endpoints da API e exige 401 sem login |
+| Autenticação obrigatória | Política de fallback `RequireAuthenticatedUser`; apenas `health`, `register`, `login`, `logout` e a pré-visualização de convite são públicos | Teste que percorre **todos** os endpoints da API e exige 401 sem login |
 | Isolamento entre empresas | Filtro global do EF + bloqueio de escrita cruzada + validação de referências + empresa ativa resolvida no servidor | Testes de leitura/edição/exclusão/referência cruzada em categorias, transações, dashboard, importações e configurações |
 | Revogação de acesso | Associação à empresa conferida a cada requisição; usuário excluído perde a sessão | Testes de membro removido (403 imediato) e usuário excluído (401) |
 | Força bruta | Lockout por conta (5 tentativas / 15 min) + limite por IP em login e cadastro (`RateLimiting__AuthPermitPerMinute`, padrão 10/min, resposta 429) | Testes de lockout e de limite por IP |

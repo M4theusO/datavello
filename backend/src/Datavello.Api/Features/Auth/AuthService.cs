@@ -11,13 +11,27 @@ public sealed class AuthService(
     AppDbContext db,
     UserManager<AppUser> userManager,
     SignInManager<AppUser> signInManager,
-    CompanyProvisioningService provisioning)
+    CompanyProvisioningService provisioning,
+    TeamService team)
 {
-    /// <summary>Creates the user and their company atomically, then signs the user in.</summary>
+    /// <summary>
+    /// Creates the user and, atomically, either a new company (owner) or — with an invite
+    /// token — the membership in the inviting company. Then signs the user in.
+    /// </summary>
     public async Task<MeResponse> RegisterAsync(RegisterRequest request, CancellationToken ct)
     {
         var email = request.Email.Trim();
         var user = new AppUser { UserName = email, Email = email, FullName = request.FullName.Trim() };
+
+        CompanyInvitation? invitation = null;
+        if (!string.IsNullOrWhiteSpace(request.InviteToken))
+        {
+            invitation = await team.FindUsableAsync(request.InviteToken, ct);
+            if (userManager.NormalizeEmail(email) != invitation.NormalizedEmail)
+            {
+                throw AppException.BadRequest($"Este convite foi enviado para {invitation.Email}. Use esse e-mail no cadastro.");
+            }
+        }
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
 
@@ -27,12 +41,41 @@ public sealed class AuthService(
             throw ToException(result);
         }
 
-        var company = await provisioning.ProvisionAsync(user, request.CompanyName, ct);
+        Guid companyId;
+        if (invitation is not null)
+        {
+            await team.JoinAsync(invitation, user, ct);
+            companyId = invitation.CompanyId;
+        }
+        else
+        {
+            companyId = (await provisioning.ProvisionAsync(user, request.CompanyName!, ct)).Id;
+        }
+
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
         await signInManager.SignInAsync(user, isPersistent: false);
-        return await GetMeAsync(user.Id, company.Id, ct);
+        return await GetMeAsync(user.Id, companyId, ct);
+    }
+
+    /// <summary>Creates another company owned by the user (it becomes the active one in the response).</summary>
+    public async Task<MeResponse> CreateCompanyAsync(Guid userId, string name, CancellationToken ct)
+    {
+        const int maxOwnedCompanies = 20;
+        var owned = await db.CompanyMembers.CountAsync(m => m.UserId == userId && m.Role == CompanyRole.Owner, ct);
+        if (owned >= maxOwnedCompanies)
+        {
+            throw AppException.BadRequest($"Limite de {maxOwnedCompanies} empresas por usuário atingido.");
+        }
+
+        var user = await db.Users.SingleAsync(u => u.Id == userId, ct);
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        var company = await provisioning.ProvisionAsync(user, name, ct);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        return await GetMeAsync(userId, company.Id, ct);
     }
 
     public async Task<MeResponse> LoginAsync(LoginRequest request, CancellationToken ct)

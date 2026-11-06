@@ -33,6 +33,21 @@ internal sealed class CompanyMemberConfiguration : IEntityTypeConfiguration<Comp
     }
 }
 
+internal sealed class CompanyInvitationConfiguration : IEntityTypeConfiguration<CompanyInvitation>
+{
+    public void Configure(EntityTypeBuilder<CompanyInvitation> b)
+    {
+        b.Property(i => i.Email).HasMaxLength(256).IsRequired();
+        b.Property(i => i.NormalizedEmail).HasMaxLength(256).IsRequired();
+        b.Property(i => i.TokenHash).HasMaxLength(64).IsRequired();
+        b.HasIndex(i => i.TokenHash).IsUnique();
+        b.HasIndex(i => new { i.CompanyId, i.NormalizedEmail });
+        b.HasOne<Company>().WithMany().HasForeignKey(i => i.CompanyId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne(i => i.InvitedBy).WithMany().HasForeignKey(i => i.InvitedByUserId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne<AppUser>().WithMany().HasForeignKey(i => i.AcceptedByUserId).OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
 internal sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
 {
     public void Configure(EntityTypeBuilder<Category> b)

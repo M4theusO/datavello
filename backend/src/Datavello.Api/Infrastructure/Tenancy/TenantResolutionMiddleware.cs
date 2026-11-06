@@ -13,6 +13,9 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
 {
     public const string HeaderName = "X-Company-Id";
 
+    /// <summary>ProblemDetails type for a rejected X-Company-Id, so the client can fall back to its default company.</summary>
+    public const string CompanyAccessDeniedType = "urn:datavello:company-access-denied";
+
     public async Task InvokeAsync(HttpContext context, CurrentTenant tenant, AppDbContext db)
     {
         if (context.User.Identity?.IsAuthenticated == true
@@ -33,6 +36,7 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
                 {
                     await Results.Problem(
                         statusCode: StatusCodes.Status403Forbidden,
+                        type: CompanyAccessDeniedType,
                         title: "Acesso negado",
                         detail: "Você não tem acesso a esta empresa.").ExecuteAsync(context);
                     return;

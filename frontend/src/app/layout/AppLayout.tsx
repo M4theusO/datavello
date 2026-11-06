@@ -5,6 +5,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import type { RouteHandle } from "@/app/navigation"
 import { AppSidebar } from "./AppSidebar"
 import { UserMenu } from "./UserMenu"
+import { useMe } from "@/features/auth/auth"
 
 /** The sidebar component stores its expanded/collapsed state in this cookie; restore it on load. */
 function sidebarStartsOpen(): boolean {
@@ -20,6 +21,7 @@ function usePageTitle(): string {
 export function AppLayout() {
   const title = usePageTitle()
   const navigation = useNavigation()
+  const companyId = useMe().data?.activeCompany?.id
 
   useEffect(() => {
     document.title = title === "Datavello" ? "Datavello" : `${title} · Datavello`
@@ -38,7 +40,8 @@ export function AppLayout() {
           <h1 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight md:text-lg">{title}</h1>
           <UserMenu />
         </header>
-        <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">
+        {/* Keyed by company: page state (open forms, filters in memory) never carries over after a switch. */}
+        <main key={companyId} className="flex-1 px-4 py-6 md:px-6 lg:px-8">
           <Outlet />
         </main>
       </SidebarInset>

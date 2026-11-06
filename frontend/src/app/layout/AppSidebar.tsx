@@ -1,4 +1,3 @@
-import { Building2 } from "lucide-react"
 import { NavLink, useLocation } from "react-router"
 import { Logo, LogoMark } from "@/components/brand/Logo"
 import {
@@ -16,7 +15,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { navigation } from "@/app/navigation"
-import { useMe } from "@/features/auth/auth"
+import { CompanySwitcher } from "@/features/companies/CompanySwitcher"
 
 function isActive(pathname: string, to: string) {
   return to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(`${to}/`)
@@ -25,8 +24,6 @@ function isActive(pathname: string, to: string) {
 export function AppSidebar() {
   const { pathname } = useLocation()
   const { isMobile, setOpenMobile } = useSidebar()
-  const me = useMe()
-  const company = me.data?.activeCompany
 
   return (
     <Sidebar collapsible="icon">
@@ -61,22 +58,9 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      {company && (
-        <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2">
-          <div
-            className="flex items-center gap-2.5 rounded-lg border bg-background/60 p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0"
-            title={company.name}
-          >
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-soft text-primary">
-              <Building2 className="size-4" aria-hidden="true" />
-            </div>
-            <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-              <p className="truncate text-sm font-medium">{company.name}</p>
-              <p className="text-xs text-muted-foreground">{company.role === "Owner" ? "Proprietário" : "Membro"}</p>
-            </div>
-          </div>
-        </SidebarFooter>
-      )}
+      <SidebarFooter className="p-3 group-data-[collapsible=icon]:p-2">
+        <CompanySwitcher />
+      </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>

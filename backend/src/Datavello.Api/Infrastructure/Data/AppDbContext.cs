@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentTenant
 {
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<CompanyMember> CompanyMembers => Set<CompanyMember>();
+    public DbSet<CompanyInvitation> CompanyInvitations => Set<CompanyInvitation>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<ImportJob> ImportJobs => Set<ImportJob>();

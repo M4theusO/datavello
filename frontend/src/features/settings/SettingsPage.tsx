@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ApiError, errorMessage } from "@/lib/api"
 import { useCompany, useUpdateCompany } from "./api"
+import { TeamSection } from "./TeamSection"
 
 const schema = z.object({
   name: z.string().trim().min(2, "O nome da empresa deve ter entre 2 e 150 caracteres.").max(150, "O nome da empresa deve ter entre 2 e 150 caracteres."),
@@ -143,9 +144,10 @@ export function SettingsPage() {
               <dd className="mt-1 font-medium">{dateFormatter.format(new Date(company.data.createdAt))}</dd>
             </div>
           </dl>
-          <p className="mt-4 text-xs text-muted-foreground">Convites para outros usuários e permissões por papel serão disponibilizados em uma versão futura.</p>
         </CardContent>
       </Card>
+
+      <TeamSection isOwner={isOwner} companyName={company.data.name} />
     </div>
   )
 }

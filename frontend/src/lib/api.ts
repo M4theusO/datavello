@@ -3,7 +3,10 @@
  * - Same-origin requests (Vite proxies /api in development), so the HttpOnly auth cookie is sent automatically.
  * - Every request carries the X-Requested-With header the backend requires on state-changing calls.
  * - Errors are surfaced as ApiError built from the server's ProblemDetails, never replaced with fake data.
+ * - The tab's active company (if chosen) goes in X-Company-Id; the server validates it.
  */
+
+import { COMPANY_ACCESS_DENIED, COMPANY_HEADER, getActiveCompanyId } from "./activeCompany"
 
 export interface ProblemDetails {
   type?: string
@@ -22,6 +25,11 @@ export class ApiError extends Error {
     this.name = "ApiError"
     this.status = status
     this.problem = problem
+  }
+
+  /** The selected company (X-Company-Id) is not accessible to this user (anymore). */
+  get isCompanyAccessDenied(): boolean {
+    return this.status === 403 && this.problem.type === COMPANY_ACCESS_DENIED
   }
 
   /** Validation messages for a field, matched case-insensitively (server keys may be PascalCase). */
@@ -52,6 +60,9 @@ async function request<T>(method: Method, path: string, body?: unknown, signal?:
     Accept: "application/json",
     "X-Requested-With": "datavello",
   }
+
+  const companyId = getActiveCompanyId()
+  if (companyId) headers[COMPANY_HEADER] = companyId
 
   let payload: BodyInit | undefined
   if (body instanceof FormData) {

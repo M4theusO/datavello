@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation, useSearchParams } from "react-router"
 import { FullPageError, FullPageLoader } from "@/components/feedback"
+import { NoCompanyPage } from "@/features/companies/NoCompanyPage"
 import { safeRedirect } from "@/lib/redirect"
 import { useMe } from "./auth"
 
@@ -15,6 +16,8 @@ export function RequireAuth() {
     const redirect = location.pathname + location.search
     return <Navigate to={redirect === "/" ? "/login" : `/login?redirect=${encodeURIComponent(redirect)}`} replace />
   }
+
+  if (!me.data.activeCompany) return <NoCompanyPage />
 
   return <Outlet />
 }

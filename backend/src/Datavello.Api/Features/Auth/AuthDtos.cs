@@ -3,7 +3,7 @@ using Datavello.Api.Domain;
 
 namespace Datavello.Api.Features.Auth;
 
-public sealed class RegisterRequest
+public sealed class RegisterRequest : IValidatableObject
 {
     /// <example>Maria Silva</example>
     [Required(ErrorMessage = "Informe seu nome.")]
@@ -21,10 +21,22 @@ public sealed class RegisterRequest
     [StringLength(128, ErrorMessage = "A senha deve ter no máximo 128 caracteres.")]
     public string Password { get; init; } = string.Empty;
 
+    /// <summary>Nome da empresa a criar. Ignorado quando há <see cref="InviteToken"/>.</summary>
     /// <example>Padaria Pão Quente</example>
-    [Required(ErrorMessage = "Informe o nome da empresa.")]
     [StringLength(150, MinimumLength = 2, ErrorMessage = "O nome da empresa deve ter entre 2 e 150 caracteres.")]
-    public string CompanyName { get; init; } = string.Empty;
+    public string? CompanyName { get; init; }
+
+    /// <summary>Token de um convite: a conta entra na empresa que convidou em vez de criar uma nova.</summary>
+    [StringLength(100, ErrorMessage = "Convite inválido.")]
+    public string? InviteToken { get; init; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (string.IsNullOrWhiteSpace(InviteToken) && string.IsNullOrWhiteSpace(CompanyName))
+        {
+            yield return new ValidationResult("Informe o nome da empresa.", [nameof(CompanyName)]);
+        }
+    }
 }
 
 public sealed class LoginRequest
