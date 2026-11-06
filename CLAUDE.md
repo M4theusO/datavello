@@ -57,8 +57,10 @@ Fora do escopo do MVP: cobrança, planos, integrações ERP/bancárias, IA, app 
 
 **Rodar:** `powershell -ExecutionPolicy Bypass -File scripts\dev.ps1` → http://localhost:5173 (API em :5080, Swagger em /swagger, e-mails no Mailpit em :8025 — instalar com `winget install --id axllent.mailpit -e`). Login demo (somente local): `demo@datavello.local` / `Demo12345`. Recriar demo: `dotnet run --project src/Datavello.Api -- seed-demo --reset` (em `backend/`).
 
+**Onde paramos (06/11/2026):** Etapas 7–9 e ajustes de interface (cursor de mãozinha, selects abrindo para baixo, espaço e hover no menu lateral) concluídos, testados e no GitHub (último commit `6fa7b76`). Nenhuma tarefa em andamento.
+
 **Próximos passos possíveis (backlog, nada iniciado):**
-- Excluir a própria conta, excluir empresa e transferir a propriedade.
+- **Sugerido como próximo:** excluir a própria conta, excluir empresa e transferir a propriedade (fecha o ciclo de equipe/empresas; hoje só dá para fazer isso direto no banco).
 - Publicação em produção: CSP no servidor do frontend, `ForwardedHeaders` atrás de proxy, segredos em cofre, CORS restrito (ver `docs/architecture.md` §7).
 - Processamento de importações grandes em segundo plano (hoje síncrono, limite de 5.000 linhas).
 - Novos módulos previstos na especificação: vendas, estoque, serviços, metas.
@@ -67,10 +69,12 @@ Fora do escopo do MVP: cobrança, planos, integrações ERP/bancárias, IA, app 
 
 - **Backend por feature:** `backend/src/Datavello.Api/Features/<Módulo>/` (Controller enxuto + Service + DTOs); infraestrutura em `Infrastructure/` (Data, Tenancy, Security, Errors, Seed).
 - **Isolamento:** entidades de empresa implementam `ITenantOwned`; o `AppDbContext` aplica filtro global por empresa e bloqueia escrita cruzada; services chamam `tenant.RequireCompanyId()`. Recurso de outra empresa responde 404. Todo recurso novo precisa de teste de isolamento entre empresas.
-- **Segurança:** cookie HttpOnly `SameSite=Strict`; requisições que alteram estado exigem o cabeçalho `X-Requested-With: datavello`; `EndpointSecurityTests` falha se um endpoint novo ficar acessível sem login (públicos só health/register/login/logout, forgot/reset-password e `POST /api/invitations/preview`); erros em `ProblemDetails` com mensagens pt-BR via `AppException`.
+- **Segurança:** cookie HttpOnly `SameSite=Strict`; requisições que alteram estado exigem o cabeçalho `X-Requested-With: datavello`; `EndpointSecurityTests` falha se um endpoint novo ficar acessível sem login (públicos só health/register/login/logout, confirm-email/resend-confirmation, forgot/reset-password, confirm-email-change e `POST /api/invitations/preview`); erros em `ProblemDetails` com mensagens pt-BR via `AppException`.
 - **Testes de integração:** usam `datavello_test` (schema recriado a cada execução; recusa apontar para o banco principal), via `DatavelloApiFactory` + `TestDatabase` na collection "Database". E-mails são capturados em memória (`factory.Emails.WaitForAsync(para, assunto)`); `factory.RegisterAsync(...)` cadastra **e confirma** o e-mail, devolvendo um cliente já logado.
 - **Empresa ativa no frontend:** escolha por aba em `src/lib/activeCompany.ts`, enviada em `X-Company-Id` por `lib/api.ts`; ao trocar, use `useSwitchCompany`/`resetCompanyData` (nunca reaproveitar cache de outra empresa).
 - **Frontend por feature:** `frontend/src/features/<módulo>/` (api.ts com hooks TanStack Query + páginas); rotas lazy em `src/app/router.tsx`; filtros de listas guardados na URL; componentes shadcn adicionados com `npx shadcn@4.21.4 add` (o CLI não é dependência; CSS base em `src/styles/shadcn.css`).
+- **Interface (padrões globais):** todo controle clicável tem cursor de mãozinha por uma regra base em `src/index.css` (Tailwind 4 não faz isso; não usar `cursor-default` em itens clicáveis); selects abrem abaixo do campo (`alignItemWithTrigger = false` em `components/ui/select.tsx`); hover do menu lateral usa o token `--sidebar-hover`, mais claro que o item selecionado.
+- **E-mails:** enfileirados (`EmailQueue`) e enviados em segundo plano; modelos pt-BR em `Infrastructure/Email/EmailTemplates.cs`; links sempre a partir de `App:PublicUrl`. Links que alteram algo (confirmações) só agem com clique explícito na página, nunca ao abrir.
 - **Gráficos:** cores validadas (receitas `#2a78d6`, despesas `#eb6834`), sempre com alternância "Tabela"; verde/vermelho só para variações.
 - **Testes visuais no navegador:** dados de teste criados durante a verificação devem ser removidos ao final (ou `seed-demo --reset`).
 
