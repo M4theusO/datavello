@@ -15,6 +15,8 @@ Plataforma SaaS de BI e dashboards para pequenas empresas: cadastre receitas e d
 - Dashboard com receitas, despesas, saldo do período, comparação com o período anterior, gráficos e atividade recente.
 - Importação de planilhas `.csv` e `.xlsx` com mapeamento de colunas, prévia, validação por linha, detecção de duplicidades e histórico.
 - Personalização do dashboard (widgets, ordem e período padrão), configurações da empresa e perfil com troca de senha.
+- Equipe: convites por link, membros com papéis de proprietário e membro, várias empresas por usuário com troca da empresa ativa.
+- Recuperação de senha por e-mail (em desenvolvimento os e-mails ficam no Mailpit, sem sair para a internet).
 
 ---
 
@@ -30,6 +32,7 @@ Todos os comandos são para o **PowerShell**, executados a partir da pasta raiz 
 | Node.js (inclui npm) | 22 LTS (mínimo 20) | <https://nodejs.org> |
 | PostgreSQL | 16 ou superior (testado com 18) | <https://www.postgresql.org/download/windows/> — **ou** Docker Desktop |
 | Git | qualquer recente | <https://git-scm.com/download/win> |
+| Mailpit (e-mails de teste) | qualquer recente (testado com 1.33) | `winget install --id axllent.mailpit -e` — opcional, mas sem ele os e-mails (ex.: redefinição de senha) não são entregues |
 
 Confira as versões:
 
@@ -120,7 +123,7 @@ cd ..
 
 ### 6. Iniciar a aplicação
 
-**Opção rápida:** abre o backend e o frontend em duas janelas.
+**Opção rápida:** abre o backend, o frontend e o Mailpit (se instalado) em janelas separadas.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\dev.ps1
@@ -140,6 +143,11 @@ cd frontend
 npm run dev
 ```
 
+```powershell
+# Terminal 3 — e-mails de teste (opcional)
+mailpit --smtp 127.0.0.1:1025 --listen 127.0.0.1:8025
+```
+
 Para parar, pressione `Ctrl+C` em cada terminal (ou feche as janelas).
 
 ### 7. Acessar
@@ -149,6 +157,7 @@ Para parar, pressione `Ctrl+C` em cada terminal (ou feche as janelas).
 | **Aplicação** | <http://localhost:5173> |
 | Documentação da API (Swagger, só em desenvolvimento) | <http://localhost:5080/swagger> |
 | Verificação da API | <http://localhost:5080/api/health> |
+| E-mails enviados pela aplicação (Mailpit) | <http://localhost:8025> |
 
 Entre com a conta de demonstração ou crie a sua em **Criar conta grátis**:
 
@@ -192,6 +201,8 @@ Os testes de integração usam o banco **`datavello_test`** (`ConnectionStrings_
 | A aplicação abre, mas mostra *"Não foi possível conectar ao servidor"* | O backend não está rodando (passo 6, terminal 1). |
 | Em desenvolvimento, a página recarrega sozinha na primeira visita a uma tela | Comportamento normal do Vite ao otimizar dependências pela primeira vez; acontece uma vez e não existe no build de produção. |
 | `scripts\setup.ps1 cannot be loaded because running scripts is disabled` | Execute com `powershell -ExecutionPolicy Bypass -File ...`, como indicado, ou use a opção manual. |
+| O e-mail de redefinição de senha não aparece | O Mailpit não está rodando ou não foi instalado (veja os pré-requisitos). Abra <http://localhost:8025>. Se o e-mail foi pedido com o Mailpit fechado, peça de novo: ele não é reenviado. |
+| `mailpit` não é reconhecido logo após instalar | Feche e abra o PowerShell (o `winget` atualiza o PATH só para janelas novas). |
 | `dotnet ef` não encontrado | Rode `dotnet tool restore` dentro da pasta `backend`. |
 | `MSB3021` / `The process cannot access the file ... Datavello.Api.exe` ao compilar ou testar | O backend está rodando e o Windows bloqueia o arquivo. Pare o backend (`Ctrl+C` na janela dele) e rode o comando de novo. |
 
@@ -211,6 +222,11 @@ Podem ser definidas no `.env` (desenvolvimento) ou como variáveis de ambiente:
 | `Auth__SecurityStampValidationSeconds` | 60 | Tempo máximo até outras sessões caírem após troca de senha |
 | `Cors__AllowedOrigins__0` | — | Origem do frontend, se servido em outro domínio |
 | `Demo__Password` | Demo12345 | Senha do usuário de demonstração (somente local) |
+| `App__PublicUrl` | http://localhost:5173 (dev) | Endereço público do frontend, usado nos links dos e-mails. **Obrigatório fora do desenvolvimento** (a API não inicia sem ele) |
+| `Email__SmtpHost` / `Email__SmtpPort` | localhost / 1025 (dev, Mailpit) | Servidor SMTP. Sem host configurado, os e-mails não são enviados (fica um aviso no log) |
+| `Email__SmtpEnableSsl` | false (dev) / true | STARTTLS no SMTP (use `true` com provedores reais, porta 587) |
+| `Email__SmtpUser` / `Email__SmtpPassword` | — | Credenciais do provedor de e-mail (segredo: nunca no repositório) |
+| `Email__FromAddress` / `Email__FromName` | nao-responda@datavello.local / Datavello | Remetente dos e-mails |
 
 ### Estrutura do projeto
 

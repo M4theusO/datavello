@@ -20,6 +20,14 @@ export const router = createBrowserRouter([
         children: [
           { path: "/login", element: <LoginPage /> },
           { path: "/cadastro", element: <RegisterPage /> },
+          {
+            path: "/esqueci-senha",
+            lazy: async () => ({ Component: (await import("@/features/auth/PasswordResetPages")).ForgotPasswordPage }),
+          },
+          {
+            path: "/redefinir-senha",
+            lazy: async () => ({ Component: (await import("@/features/auth/PasswordResetPages")).ResetPasswordPage }),
+          },
         ],
       },
       {

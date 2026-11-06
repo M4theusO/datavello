@@ -37,7 +37,7 @@ datavello/
 
 SaaS B2B limpo: fundo claro, neutros, **azul** como cor principal; verde = positivo, vermelho = alerta (com moderação). Cards com borda discreta e sombra sutil. Sem excesso de gradientes. Logotipo original em SVG local (funciona em fundo claro e escuro). Sidebar recolhível (Dashboard, Transações, Categorias, Importar dados, Personalizar dashboard, Configurações, Perfil) + topbar com título, seletor de período e menu do usuário. Responsivo; estados de loading, erro, vazio e sucesso.
 
-## Etapas (todas concluídas — detalhes em `docs/implementation-plan.md`)
+## Etapas (detalhes em `docs/implementation-plan.md`)
 
 1. ✅ Inspeção e planejamento → `docs/architecture.md`, `docs/implementation-plan.md`
 2. ✅ Fundação (estrutura, PostgreSQL, migrations, UI base, auth, modelo multiempresa)
@@ -46,17 +46,19 @@ SaaS B2B limpo: fundo claro, neutros, **azul** como cor principal; verde = posit
 5. ✅ Testes e acabamento (configurações, perfil, revisão de segurança, responsividade, Vitest)
 6. ✅ Execução local no Windows (README passo a passo, `scripts/setup.ps1`, `scripts/dev.ps1`)
 7. ✅ Equipe e várias empresas (convites por link, membros, criação e troca de empresa ativa) — regras em `docs/architecture.md` §6
+8. 🔄 E-mail (Mailpit em dev) e recuperação de senha ✅; convite por e-mail e troca de e-mail pendentes — ver `docs/implementation-plan.md`
 
 Fora do escopo do MVP: cobrança, planos, integrações ERP/bancárias, IA, app mobile, editor avançado de dashboards, marketplace, permissões complexas, banco por cliente.
 
 ## Estado atual (06/11/2026)
 
-**MVP completo e verificado, mais a Etapa 7 (equipe e várias empresas).** Repositório: https://github.com/M4theusO/datavello (privado, branch `main`, um commit por etapa). Testes: 164 backend (xUnit, PostgreSQL real) + 37 frontend (Vitest); `npm audit` e NuGet sem vulnerabilidades. Instalação do zero conferida seguindo o README.
+**MVP completo e verificado, mais a Etapa 7 (equipe e várias empresas) e a 8a (e-mail + recuperação de senha).** Repositório: https://github.com/M4theusO/datavello (privado, branch `main`, um commit por etapa). Testes: 170 backend (xUnit, PostgreSQL real) + 37 frontend (Vitest); `npm audit` e NuGet sem vulnerabilidades. Instalação do zero conferida seguindo o README.
 
-**Rodar:** `powershell -ExecutionPolicy Bypass -File scripts\dev.ps1` → http://localhost:5173 (API em :5080, Swagger em /swagger). Login demo (somente local): `demo@datavello.local` / `Demo12345`. Recriar demo: `dotnet run --project src/Datavello.Api -- seed-demo --reset` (em `backend/`).
+**Rodar:** `powershell -ExecutionPolicy Bypass -File scripts\dev.ps1` → http://localhost:5173 (API em :5080, Swagger em /swagger, e-mails no Mailpit em :8025 — instalar com `winget install --id axllent.mailpit -e`). Login demo (somente local): `demo@datavello.local` / `Demo12345`. Recriar demo: `dotnet run --project src/Datavello.Api -- seed-demo --reset` (em `backend/`).
 
 **Próximos passos possíveis (backlog, nada iniciado):**
-- Troca de e-mail com confirmação; recuperação de senha por e-mail.
+- Etapa 8b: enviar convite por e-mail; troca de e-mail com confirmação (a infraestrutura de e-mail já existe: `Infrastructure/Email`, `EmailQueue` + `EmailTemplates`).
+- Excluir a própria conta, excluir empresa e transferir a propriedade.
 - Publicação em produção: CSP no servidor do frontend, `ForwardedHeaders` atrás de proxy, segredos em cofre, CORS restrito (ver `docs/architecture.md` §7).
 - Processamento de importações grandes em segundo plano (hoje síncrono, limite de 5.000 linhas).
 - Novos módulos previstos na especificação: vendas, estoque, serviços, metas.
@@ -65,7 +67,7 @@ Fora do escopo do MVP: cobrança, planos, integrações ERP/bancárias, IA, app 
 
 - **Backend por feature:** `backend/src/Datavello.Api/Features/<Módulo>/` (Controller enxuto + Service + DTOs); infraestrutura em `Infrastructure/` (Data, Tenancy, Security, Errors, Seed).
 - **Isolamento:** entidades de empresa implementam `ITenantOwned`; o `AppDbContext` aplica filtro global por empresa e bloqueia escrita cruzada; services chamam `tenant.RequireCompanyId()`. Recurso de outra empresa responde 404. Todo recurso novo precisa de teste de isolamento entre empresas.
-- **Segurança:** cookie HttpOnly `SameSite=Strict`; requisições que alteram estado exigem o cabeçalho `X-Requested-With: datavello`; `EndpointSecurityTests` falha se um endpoint novo ficar acessível sem login (públicos só health/register/login/logout e `POST /api/invitations/preview`); erros em `ProblemDetails` com mensagens pt-BR via `AppException`.
+- **Segurança:** cookie HttpOnly `SameSite=Strict`; requisições que alteram estado exigem o cabeçalho `X-Requested-With: datavello`; `EndpointSecurityTests` falha se um endpoint novo ficar acessível sem login (públicos só health/register/login/logout, forgot/reset-password e `POST /api/invitations/preview`); erros em `ProblemDetails` com mensagens pt-BR via `AppException`.
 - **Testes de integração:** usam `datavello_test` (schema recriado a cada execução; recusa apontar para o banco principal), via `DatavelloApiFactory` + `TestDatabase` na collection "Database".
 - **Empresa ativa no frontend:** escolha por aba em `src/lib/activeCompany.ts`, enviada em `X-Company-Id` por `lib/api.ts`; ao trocar, use `useSwitchCompany`/`resetCompanyData` (nunca reaproveitar cache de outra empresa).
 - **Frontend por feature:** `frontend/src/features/<módulo>/` (api.ts com hooks TanStack Query + páginas); rotas lazy em `src/app/router.tsx`; filtros de listas guardados na URL; componentes shadcn adicionados com `npx shadcn@4.21.4 add` (o CLI não é dependência; CSS base em `src/styles/shadcn.css`).

@@ -73,3 +73,16 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 - [x] Seletor de empresa ativa na sidebar (escolha por aba, enviada em `X-Company-Id`; preferência lembrada por usuário)
 - [x] Tela para usuário sem empresa; volta automática à empresa padrão quando o acesso é revogado
 - [x] Testes: 11 de integração (convites, papéis, isolamento entre empresas, cabeçalho recusado) + 6 Vitest; fluxo completo verificado no navegador
+
+## Etapa 8 — E-mail e recuperação de senha
+
+**8a. Envio de e-mail e recuperação de senha** ✅
+- [x] Infraestrutura de e-mail: fila em memória + envio em segundo plano via SMTP; Mailpit em desenvolvimento (`scripts/dev.ps1` o inicia)
+- [x] `App:PublicUrl` para os links (validado na inicialização)
+- [x] "Esqueci minha senha" (resposta neutra) e redefinição pelo link (1 hora, uso único, encerra outras sessões, desbloqueia a conta)
+- [x] Telas `/esqueci-senha` e `/redefinir-senha`; link na tela de login
+- [x] Testes: 6 de integração (fluxo completo, e-mail inexistente, token adulterado/de outro usuário, senha fraca, desbloqueio, HTML escapado); fluxo verificado no navegador com o Mailpit
+
+**8b. Próximos passos** (não iniciados)
+- [ ] Enviar o convite também por e-mail
+- [ ] Troca de e-mail da conta com confirmação no novo endereço

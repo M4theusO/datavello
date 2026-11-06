@@ -8,6 +8,7 @@ using Datavello.Api.Features.Imports;
 using Datavello.Api.Features.Transactions;
 using Datavello.Api.Infrastructure.Configuration;
 using Datavello.Api.Infrastructure.Data;
+using Datavello.Api.Infrastructure.Email;
 using Datavello.Api.Infrastructure.Errors;
 using Datavello.Api.Infrastructure.Identity;
 using Datavello.Api.Infrastructure.Security;
@@ -48,7 +49,11 @@ builder.Services
     })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddSignInManager()
+    .AddDefaultTokenProviders()
     .AddErrorDescriber<PortugueseIdentityErrorDescriber>();
+
+// Password reset links (and other Identity e-mail tokens) expire after one hour.
+builder.Services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromHours(1));
 
 builder.Services
     .AddAuthentication(IdentityConstants.ApplicationScheme)
@@ -78,6 +83,7 @@ builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 // --- Application services ---
 builder.Services.AddScoped<CompanyProvisioningService>();
+builder.Services.AddScoped<PasswordResetService>();
 builder.Services.AddScoped<TeamService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<CategoryService>();
@@ -86,6 +92,17 @@ builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<DemoSeeder>();
 builder.Services.Configure<ImportSettings>(builder.Configuration.GetSection(ImportSettings.Section));
 builder.Services.AddScoped<ImportService>();
+
+// --- E-mail (queued, sent in the background; Mailpit in development) ---
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(EmailSettings.Section));
+builder.Services.AddOptions<AppUrlSettings>()
+    .Bind(builder.Configuration.GetSection(AppUrlSettings.Section))
+    .Validate(s => Uri.TryCreate(s.PublicUrl, UriKind.Absolute, out var u) && u.Scheme is "http" or "https",
+        "App:PublicUrl must be the absolute http(s) address of the web app (used in e-mail links).")
+    .ValidateOnStart();
+builder.Services.AddSingleton<EmailQueue>();
+builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+builder.Services.AddHostedService<EmailDispatcher>();
 
 // --- API ---
 builder.Services

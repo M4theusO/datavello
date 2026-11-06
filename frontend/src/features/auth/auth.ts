@@ -161,3 +161,15 @@ export function useAcceptInvitation() {
     },
   })
 }
+
+/** Always succeeds (204) for a valid e-mail, whether or not it has an account. */
+export function useForgotPassword() {
+  return useMutation({ mutationFn: (input: { email: string }) => api.post<void>("/auth/forgot-password", input) })
+}
+
+/** Sets a new password from the e-mailed link. The user then signs in again. */
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (input: { userId: string; token: string; newPassword: string }) => api.post<void>("/auth/reset-password", input),
+  })
+}

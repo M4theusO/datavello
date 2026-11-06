@@ -73,7 +73,12 @@ export function LoginPage() {
           </Field>
 
           <Field data-invalid={!!errors.password}>
-            <FieldLabel htmlFor="password">Senha</FieldLabel>
+            <div className="flex items-center justify-between gap-2">
+              <FieldLabel htmlFor="password">Senha</FieldLabel>
+              <Link to="/esqueci-senha" className="text-sm text-primary underline-offset-4 hover:underline">
+                Esqueci minha senha
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"

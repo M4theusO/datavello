@@ -44,6 +44,32 @@ public sealed class AuthController(AuthService auth, ICurrentTenant tenant) : Co
         return NoContent();
     }
 
+    /// <summary>
+    /// Envia um link de redefinição de senha, se o e-mail tiver conta. A resposta é sempre 204,
+    /// para não revelar quais e-mails estão cadastrados.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(AuthRateLimiting.Policy)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, [FromServices] PasswordResetService passwords)
+    {
+        await passwords.RequestAsync(request);
+        return NoContent();
+    }
+
+    /// <summary>Define a nova senha a partir do link recebido por e-mail. Outras sessões abertas deixam de valer.</summary>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(AuthRateLimiting.Policy)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, [FromServices] PasswordResetService passwords)
+    {
+        await passwords.ResetAsync(request);
+        return NoContent();
+    }
+
     /// <summary>Usuário autenticado e empresa ativa.</summary>
     [HttpGet("me")]
     [ProducesResponseType<MeResponse>(StatusCodes.Status200OK)]
