@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { AlertCircle, LogIn } from "lucide-react"
+import { AlertCircle, LogIn, MailWarning } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { z } from "zod"
@@ -9,10 +9,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { errorMessage } from "@/lib/api"
+import { ApiError, errorMessage } from "@/lib/api"
 import { safeRedirect } from "@/lib/redirect"
 import { useLogin } from "./auth"
 import { AuthLayout } from "./AuthLayout"
+import { ResendConfirmationButton } from "./ConfirmRegistration"
 
 const schema = z.object({
   email: z.string().trim().min(1, "Informe o e-mail.").pipe(z.email("E-mail inválido.")),
@@ -32,6 +33,8 @@ export function LoginPage() {
     defaultValues: { email: "", password: "", rememberMe: false },
   })
   const { errors } = form.formState
+  // 403 on login = right password, but the e-mail was never confirmed.
+  const emailNotConfirmed = login.error instanceof ApiError && login.error.status === 403
 
   useEffect(() => {
     document.title = "Entrar · Datavello"
@@ -50,12 +53,21 @@ export function LoginPage() {
   return (
     <AuthLayout title="Entrar na sua conta" description="Acesse o painel da sua empresa.">
       <form onSubmit={onSubmit} noValidate className="space-y-6">
-        {login.isError && (
-          <Alert variant="destructive">
-            <AlertCircle />
-            <AlertDescription>{errorMessage(login.error)}</AlertDescription>
-          </Alert>
-        )}
+        {login.isError &&
+          (emailNotConfirmed ? (
+            <div className="space-y-3">
+              <Alert>
+                <MailWarning />
+                <AlertDescription>{errorMessage(login.error)}</AlertDescription>
+              </Alert>
+              <ResendConfirmationButton key={login.variables.email} email={login.variables.email.trim()} />
+            </div>
+          ) : (
+            <Alert variant="destructive">
+              <AlertCircle />
+              <AlertDescription>{errorMessage(login.error)}</AlertDescription>
+            </Alert>
+          ))}
 
         <FieldGroup>
           <Field data-invalid={!!errors.email}>

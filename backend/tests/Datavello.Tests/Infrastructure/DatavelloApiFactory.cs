@@ -42,13 +42,17 @@ public sealed class CapturingEmailSender : IEmailSender
         return Task.CompletedTask;
     }
 
-    /// <summary>Waits for the background dispatcher to deliver an e-mail to <paramref name="to"/>.</summary>
-    public async Task<EmailMessage> WaitForAsync(string to, TimeSpan? timeout = null)
+    /// <summary>
+    /// Waits for the background dispatcher to deliver an e-mail to <paramref name="to"/>
+    /// (optionally with a subject containing <paramref name="subject"/>).
+    /// </summary>
+    public async Task<EmailMessage> WaitForAsync(string to, string? subject = null, TimeSpan? timeout = null)
     {
         var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(5));
         while (DateTime.UtcNow < deadline)
         {
-            var found = _sent.LastOrDefault(m => string.Equals(m.To, to, StringComparison.OrdinalIgnoreCase));
+            var found = _sent.LastOrDefault(m => string.Equals(m.To, to, StringComparison.OrdinalIgnoreCase)
+                                                 && (subject is null || m.Subject.Contains(subject, StringComparison.Ordinal)));
             if (found is not null)
             {
                 return found;

@@ -90,6 +90,13 @@ public sealed class PasswordResetService(
 
         await users.ResetAccessFailedCountAsync(user);
         await users.SetLockoutEndDateAsync(user, null);
+
+        // The reset link arrived by e-mail, which proves the address belongs to the user.
+        if (!user.EmailConfirmed)
+        {
+            user.EmailConfirmed = true;
+            await users.UpdateAsync(user);
+        }
         logger.LogInformation("Password reset completed for user {UserId}.", user.Id);
     }
 }

@@ -23,7 +23,7 @@ public sealed partial class EmailChangeTests(TestDatabase database) : IDisposabl
         var response = await client.PostJsonAsync("/api/profile/email", new { newEmail, currentPassword = "SenhaForte123" });
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        var message = await _factory.Emails.WaitForAsync(newEmail);
+        var message = await _factory.Emails.WaitForAsync(newEmail, "Confirme seu novo e-mail");
         Assert.Equal("Confirme seu novo e-mail — Datavello", message.Subject);
         var match = ConfirmLink().Match(message.TextBody);
         Assert.True(match.Success, "e-mail should contain the confirmation link");
@@ -55,7 +55,7 @@ public sealed partial class EmailChangeTests(TestDatabase database) : IDisposabl
         Assert.Equal(newEmail, login.User.Email);
         Assert.Equal(me.ActiveCompany!.Id, login.ActiveCompany!.Id);
 
-        var notice = await _factory.Emails.WaitForAsync(me.User.Email);
+        var notice = await _factory.Emails.WaitForAsync(me.User.Email, "foi alterado");
         Assert.Equal("O e-mail da sua conta foi alterado — Datavello", notice.Subject);
         Assert.Contains(newEmail, notice.TextBody);
 
@@ -119,7 +119,7 @@ public sealed partial class EmailChangeTests(TestDatabase database) : IDisposabl
             registration.Password,
             registration.CompanyName
         });
-        Assert.Equal(HttpStatusCode.Created, squatter.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, squatter.StatusCode); // even unconfirmed, the account holds the address
 
         var confirm = await _factory.CreateBrowserLikeClient().PostJsonAsync("/api/auth/confirm-email-change", new { userId, newEmail, token });
         Assert.Equal(HttpStatusCode.Conflict, confirm.StatusCode);
@@ -132,7 +132,7 @@ public sealed partial class EmailChangeTests(TestDatabase database) : IDisposabl
         var email = NewEmail();
 
         var created = await (await owner.PostJsonAsync("/api/company/invitations", new { email })).ReadAsync<CreatedInvitationDto>();
-        var message = await _factory.Emails.WaitForAsync(email);
+        var message = await _factory.Emails.WaitForAsync(email, "convidou você");
 
         Assert.Equal($"{ownerMe.User.FullName} convidou você para Empresa que convida no Datavello", message.Subject);
         Assert.Contains($"{DatavelloApiFactory.PublicUrl}/convite/{created.Token}", message.TextBody);

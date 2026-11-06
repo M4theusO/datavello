@@ -16,20 +16,27 @@ public sealed class AuthTests(TestDatabase database) : IDisposable
     private readonly DatavelloApiFactory _factory = new(database);
 
     [Fact]
-    public async Task Register_creates_user_company_categories_and_dashboard_and_signs_in()
+    public async Task Register_creates_user_company_categories_and_dashboard_and_signs_in_after_confirmation()
     {
         var client = _factory.CreateBrowserLikeClient();
         var registration = ApiClient.NewRegistration("Padaria Teste");
 
         var response = await client.PostAsJsonAsync("/api/auth/register", registration);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var setCookie = string.Join(";", response.Headers.GetValues("Set-Cookie"));
+        // No session until the e-mail is confirmed.
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        Assert.False(response.Headers.Contains("Set-Cookie"));
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/auth/me")).StatusCode);
+
+        var (userId, token) = await _factory.ConfirmationLinkAsync(registration.Email);
+        var confirm = await client.PostAsJsonAsync("/api/auth/confirm-email", new { userId, token });
+        Assert.Equal(HttpStatusCode.OK, confirm.StatusCode);
+        var setCookie = string.Join(";", confirm.Headers.GetValues("Set-Cookie"));
         Assert.Contains("datavello.auth", setCookie);
         Assert.Contains("httponly", setCookie, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("samesite=strict", setCookie, StringComparison.OrdinalIgnoreCase);
 
-        var me = (await response.Content.ReadFromJsonAsync<MeResponse>(Json.Options))!;
+        var me = (await confirm.Content.ReadFromJsonAsync<MeResponse>(Json.Options))!;
         Assert.Equal(registration.Email, me.User.Email);
         Assert.Equal("Padaria Teste", me.ActiveCompany!.Name);
         Assert.Equal(CompanyRole.Owner, me.ActiveCompany.Role);
@@ -91,7 +98,7 @@ public sealed class AuthTests(TestDatabase database) : IDisposable
     public async Task Login_and_logout_flow()
     {
         var registration = ApiClient.NewRegistration();
-        (await _factory.CreateBrowserLikeClient().PostAsJsonAsync("/api/auth/register", registration)).EnsureSuccessStatusCode();
+        await _factory.RegisterAsync(registration);
 
         var client = _factory.CreateBrowserLikeClient();
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/auth/me")).StatusCode);
@@ -108,7 +115,7 @@ public sealed class AuthTests(TestDatabase database) : IDisposable
     public async Task Login_failure_does_not_reveal_whether_the_email_exists()
     {
         var registration = ApiClient.NewRegistration();
-        (await _factory.CreateBrowserLikeClient().PostAsJsonAsync("/api/auth/register", registration)).EnsureSuccessStatusCode();
+        await _factory.RegisterAsync(registration);
         var client = _factory.CreateBrowserLikeClient();
 
         var wrongPassword = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest { Email = registration.Email, Password = "SenhaErrada999" });
@@ -123,7 +130,7 @@ public sealed class AuthTests(TestDatabase database) : IDisposable
     public async Task Account_is_locked_after_repeated_failures()
     {
         var registration = ApiClient.NewRegistration();
-        (await _factory.CreateBrowserLikeClient().PostAsJsonAsync("/api/auth/register", registration)).EnsureSuccessStatusCode();
+        await _factory.RegisterAsync(registration);
         var client = _factory.CreateBrowserLikeClient();
 
         for (var i = 0; i < 5; i++)

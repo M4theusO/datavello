@@ -21,7 +21,9 @@ public sealed partial class EndpointSecurityTests(TestDatabase database) : IDisp
         "POST api/invitations/preview",
         "POST api/auth/forgot-password",
         "POST api/auth/reset-password",
-        "POST api/auth/confirm-email-change"
+        "POST api/auth/confirm-email-change",
+        "POST api/auth/confirm-email",
+        "POST api/auth/resend-confirmation"
     ];
 
     [GeneratedRegex(@"\{[^}]+\}")]

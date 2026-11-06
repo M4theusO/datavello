@@ -56,5 +56,35 @@ public sealed record UserDto(Guid Id, string FullName, string Email);
 
 public sealed record CompanySummaryDto(Guid Id, string Name, CompanyRole Role);
 
-/// <summary>Authenticated user, the active company and every company the user belongs to.</summary>
-public sealed record MeResponse(UserDto User, CompanySummaryDto? ActiveCompany, IReadOnlyList<CompanySummaryDto> Companies);
+/// <summary>
+/// Authenticated user, the active company and every company the user belongs to.
+/// <paramref name="CanCreateCompany"/> is false once the user owns <paramref name="MaxOwnedCompanies"/> companies.
+/// </summary>
+public sealed record MeResponse(
+    UserDto User,
+    CompanySummaryDto? ActiveCompany,
+    IReadOnlyList<CompanySummaryDto> Companies,
+    bool CanCreateCompany,
+    int MaxOwnedCompanies);
+
+/// <summary>Registration accepted: the account exists but signs in only after confirming the e-mail.</summary>
+public sealed record RegisterAcceptedResponse(string Email);
+
+public sealed class ConfirmEmailRequest
+{
+    [Required(ErrorMessage = "Link inválido.")]
+    public Guid UserId { get; init; }
+
+    [Required(ErrorMessage = "Link inválido.")]
+    [StringLength(2000, ErrorMessage = "Link inválido.")]
+    public string Token { get; init; } = string.Empty;
+}
+
+public sealed class ResendConfirmationRequest
+{
+    /// <example>maria@empresa.com.br</example>
+    [Required(ErrorMessage = "Informe o e-mail.")]
+    [EmailAddress(ErrorMessage = "E-mail inválido.")]
+    [StringLength(256, ErrorMessage = "E-mail muito longo.")]
+    public string Email { get; init; } = string.Empty;
+}

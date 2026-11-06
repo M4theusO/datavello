@@ -87,3 +87,12 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 - [x] Convite enviado por e-mail (o link continua visível para o proprietário compartilhar)
 - [x] Troca de e-mail: senha atual + link no novo endereço, confirmação por clique, aviso ao endereço antigo, sessões encerradas
 - [x] Testes: 5 de integração (fluxo completo, senha/e-mail inválidos, link adulterado ou de outra conta, e-mail ocupado antes da confirmação, e-mail do convite); fluxo verificado no navegador com o Mailpit
+
+## Etapa 9 — Confirmação de e-mail no cadastro e limite de empresas ✅
+
+- [x] Cadastro sem sessão até confirmar o e-mail (link de 1 hora; confirmação por clique já inicia a sessão; link reutilizado não cria sessão)
+- [x] Login de conta não confirmada: aviso só para quem acerta a senha, com reenvio do link; bloqueio por tentativas respeitado
+- [x] Reenvio de confirmação com resposta neutra; redefinição de senha também confirma o e-mail
+- [x] Migration que marca as contas existentes como confirmadas
+- [x] Limite de 3 empresas próprias por usuário; "Nova empresa" desabilitada no limite (`canCreateCompany` em `/api/auth/me`)
+- [x] Testes: 8 novos de integração e ajuste dos existentes para o cadastro confirmado; fluxo verificado no navegador com o Mailpit

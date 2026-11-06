@@ -24,18 +24,14 @@ public sealed class TeamApiTests(TestDatabase database) : IDisposable
         return await response.ReadAsync<CreatedInvitationDto>();
     }
 
-    private async Task<(HttpClient Client, MeResponse Me)> RegisterWithInviteAsync(string email, string token)
-    {
-        var client = _factory.CreateBrowserLikeClient();
-        var me = await (await client.PostJsonAsync("/api/auth/register", new
+    private Task<(HttpClient Client, MeResponse Me)> RegisterWithInviteAsync(string email, string token) =>
+        _factory.RegisterAsync(new
         {
             fullName = "Pessoa Convidada",
             email,
             password = "SenhaForte123",
             inviteToken = token
-        })).ReadAsync<MeResponse>();
-        return (client, me);
-    }
+        });
 
     [Fact]
     public async Task New_user_registers_through_an_invitation_and_joins_the_company_as_member()

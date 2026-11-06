@@ -39,6 +39,7 @@ builder.Services
     .AddIdentityCore<AppUser>(o =>
     {
         o.User.RequireUniqueEmail = true;
+        o.SignIn.RequireConfirmedEmail = true;
         o.Password.RequiredLength = 8;
         o.Password.RequireDigit = true;
         o.Password.RequireLowercase = false;

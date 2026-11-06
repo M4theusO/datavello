@@ -26,7 +26,7 @@ export function CreateCompanyForm({ onCreated, onCancel }: { onCreated?: () => v
   const onSubmit = form.handleSubmit(async ({ name }) => {
     try {
       const me = await create.mutateAsync({ name })
-      toast.success(`Empresa ${me.activeCompany?.name ?? name} criada.`)
+      toast.success(`Empresa criada: ${me.activeCompany?.name ?? name}.`)
       onCreated?.()
     } catch (error) {
       const [message] = error instanceof ApiError ? error.fieldErrors("name") : []

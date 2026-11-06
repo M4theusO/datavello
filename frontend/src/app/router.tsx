@@ -31,6 +31,11 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        // Public: registration confirmation link (signs in on confirmation).
+        path: "/confirmar-cadastro",
+        lazy: async () => ({ Component: (await import("@/features/auth/ConfirmRegistration")).ConfirmRegistrationPage }),
+      },
+      {
         // Public: the link may be opened on any device, signed in or not.
         path: "/confirmar-email",
         lazy: async () => ({ Component: (await import("@/features/auth/ConfirmEmailPage")).ConfirmEmailPage }),

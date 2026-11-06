@@ -9,7 +9,7 @@ Plataforma SaaS de BI e dashboards para pequenas empresas: cadastre receitas e d
 
 ## Funcionalidades
 
-- Conta de usuário com empresa própria; dados de cada empresa totalmente isolados.
+- Conta de usuário (com confirmação do e-mail no cadastro) e empresa própria — até 3 empresas por usuário; dados de cada empresa totalmente isolados.
 - Transações (receitas e despesas) com busca, filtros, ordenação e paginação.
 - Categorias por empresa, com categorias padrão já criadas no cadastro.
 - Dashboard com receitas, despesas, saldo do período, comparação com o período anterior, gráficos e atividade recente.
@@ -159,7 +159,7 @@ Para parar, pressione `Ctrl+C` em cada terminal (ou feche as janelas).
 | Verificação da API | <http://localhost:5080/api/health> |
 | E-mails enviados pela aplicação (Mailpit) | <http://localhost:8025> |
 
-Entre com a conta de demonstração ou crie a sua em **Criar conta grátis**:
+Entre com a conta de demonstração ou crie a sua em **Criar conta grátis** (a conta nova só entra depois de confirmar o e-mail: o link aparece no Mailpit, em <http://localhost:8025>):
 
 | Ambiente | E-mail | Senha |
 | --- | --- | --- |

@@ -26,6 +26,7 @@ export function CompanySwitcher() {
   const [creating, setCreating] = useState(false)
   const active = me.data?.activeCompany
   const companies = me.data?.companies ?? []
+  const canCreate = me.data?.canCreateCompany ?? false
 
   if (!active) return null
 
@@ -76,9 +77,14 @@ export function CompanySwitcher() {
                 ))}
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setCreating(true)}>
+              <DropdownMenuItem onClick={() => setCreating(true)} disabled={!canCreate}>
                 <Plus />
-                Nova empresa
+                <span className="min-w-0 flex-1">
+                  <span className="block">Nova empresa</span>
+                  {!canCreate && (
+                    <span className="block text-xs text-muted-foreground">Limite de {me.data?.maxOwnedCompanies} empresas próprias atingido</span>
+                  )}
+                </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -13,17 +13,40 @@ namespace Datavello.Api.Features.Auth;
 [Produces("application/json")]
 public sealed class AuthController(AuthService auth, ICurrentTenant tenant) : ControllerBase
 {
-    /// <summary>Cria a conta, a empresa (com categorias e dashboard padrão) e inicia a sessão.</summary>
+    /// <summary>
+    /// Cria a conta e a empresa (com categorias e dashboard padrão) — ou entra na empresa do convite — e
+    /// envia o e-mail de confirmação. A sessão só começa depois da confirmação.
+    /// </summary>
     [HttpPost("register")]
     [AllowAnonymous]
     [EnableRateLimiting(AuthRateLimiting.Policy)]
-    [ProducesResponseType<MeResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType<RegisterAcceptedResponse>(StatusCodes.Status202Accepted)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<MeResponse>> Register(RegisterRequest request, CancellationToken ct)
+    public async Task<ActionResult<RegisterAcceptedResponse>> Register(RegisterRequest request, CancellationToken ct)
     {
-        var me = await auth.RegisterAsync(request, ct);
-        return CreatedAtAction(nameof(Me), me);
+        var accepted = await auth.RegisterAsync(request, ct);
+        return Accepted(accepted);
+    }
+
+    /// <summary>Confirma o e-mail pelo link recebido e inicia a sessão. Link de e-mail já confirmado responde 409.</summary>
+    [HttpPost("confirm-email")]
+    [AllowAnonymous]
+    [EnableRateLimiting(AuthRateLimiting.Policy)]
+    [ProducesResponseType<MeResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public Task<MeResponse> ConfirmEmail(ConfirmEmailRequest request, CancellationToken ct) => auth.ConfirmEmailAsync(request, ct);
+
+    /// <summary>Reenvia o e-mail de confirmação. Sempre 204, para não revelar quais e-mails têm conta.</summary>
+    [HttpPost("resend-confirmation")]
+    [AllowAnonymous]
+    [EnableRateLimiting(AuthRateLimiting.Policy)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ResendConfirmation(ResendConfirmationRequest request)
+    {
+        await auth.ResendConfirmationAsync(request);
+        return NoContent();
     }
 
     /// <summary>Inicia a sessão (cookie HttpOnly).</summary>

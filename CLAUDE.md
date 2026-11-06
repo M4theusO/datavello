@@ -47,12 +47,13 @@ SaaS B2B limpo: fundo claro, neutros, **azul** como cor principal; verde = posit
 6. ✅ Execução local no Windows (README passo a passo, `scripts/setup.ps1`, `scripts/dev.ps1`)
 7. ✅ Equipe e várias empresas (convites por link, membros, criação e troca de empresa ativa) — regras em `docs/architecture.md` §6
 8. ✅ E-mail (Mailpit em dev): recuperação de senha, convite por e-mail e troca de e-mail com confirmação — regras em `docs/architecture.md` §7
+9. ✅ Confirmação de e-mail obrigatória no cadastro (login só depois de confirmar) e limite de 3 empresas próprias por usuário (`AuthService.MaxOwnedCompanies`)
 
 Fora do escopo do MVP: cobrança, planos, integrações ERP/bancárias, IA, app mobile, editor avançado de dashboards, marketplace, permissões complexas, banco por cliente.
 
 ## Estado atual (06/11/2026)
 
-**MVP completo e verificado, mais as Etapas 7 (equipe e várias empresas) e 8 (e-mails: recuperação de senha, convite, troca de e-mail).** Repositório: https://github.com/M4theusO/datavello (privado, branch `main`, um commit por etapa). Testes: 175 backend (xUnit, PostgreSQL real) + 37 frontend (Vitest); `npm audit` e NuGet sem vulnerabilidades. Instalação do zero conferida seguindo o README.
+**MVP completo e verificado, mais as Etapas 7 (equipe e várias empresas), 8 (e-mails: recuperação de senha, convite, troca de e-mail) e 9 (confirmação de e-mail no cadastro, limite de 3 empresas).** Repositório: https://github.com/M4theusO/datavello (privado, branch `main`, um commit por etapa). Testes: 183 backend (xUnit, PostgreSQL real) + 37 frontend (Vitest); `npm audit` e NuGet sem vulnerabilidades. Instalação do zero conferida seguindo o README.
 
 **Rodar:** `powershell -ExecutionPolicy Bypass -File scripts\dev.ps1` → http://localhost:5173 (API em :5080, Swagger em /swagger, e-mails no Mailpit em :8025 — instalar com `winget install --id axllent.mailpit -e`). Login demo (somente local): `demo@datavello.local` / `Demo12345`. Recriar demo: `dotnet run --project src/Datavello.Api -- seed-demo --reset` (em `backend/`).
 
@@ -67,7 +68,7 @@ Fora do escopo do MVP: cobrança, planos, integrações ERP/bancárias, IA, app 
 - **Backend por feature:** `backend/src/Datavello.Api/Features/<Módulo>/` (Controller enxuto + Service + DTOs); infraestrutura em `Infrastructure/` (Data, Tenancy, Security, Errors, Seed).
 - **Isolamento:** entidades de empresa implementam `ITenantOwned`; o `AppDbContext` aplica filtro global por empresa e bloqueia escrita cruzada; services chamam `tenant.RequireCompanyId()`. Recurso de outra empresa responde 404. Todo recurso novo precisa de teste de isolamento entre empresas.
 - **Segurança:** cookie HttpOnly `SameSite=Strict`; requisições que alteram estado exigem o cabeçalho `X-Requested-With: datavello`; `EndpointSecurityTests` falha se um endpoint novo ficar acessível sem login (públicos só health/register/login/logout, forgot/reset-password e `POST /api/invitations/preview`); erros em `ProblemDetails` com mensagens pt-BR via `AppException`.
-- **Testes de integração:** usam `datavello_test` (schema recriado a cada execução; recusa apontar para o banco principal), via `DatavelloApiFactory` + `TestDatabase` na collection "Database".
+- **Testes de integração:** usam `datavello_test` (schema recriado a cada execução; recusa apontar para o banco principal), via `DatavelloApiFactory` + `TestDatabase` na collection "Database". E-mails são capturados em memória (`factory.Emails.WaitForAsync(para, assunto)`); `factory.RegisterAsync(...)` cadastra **e confirma** o e-mail, devolvendo um cliente já logado.
 - **Empresa ativa no frontend:** escolha por aba em `src/lib/activeCompany.ts`, enviada em `X-Company-Id` por `lib/api.ts`; ao trocar, use `useSwitchCompany`/`resetCompanyData` (nunca reaproveitar cache de outra empresa).
 - **Frontend por feature:** `frontend/src/features/<módulo>/` (api.ts com hooks TanStack Query + páginas); rotas lazy em `src/app/router.tsx`; filtros de listas guardados na URL; componentes shadcn adicionados com `npx shadcn@4.21.4 add` (o CLI não é dependência; CSS base em `src/styles/shadcn.css`).
 - **Gráficos:** cores validadas (receitas `#2a78d6`, despesas `#eb6834`), sempre com alternância "Tabela"; verde/vermelho só para variações.

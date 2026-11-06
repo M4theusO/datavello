@@ -26,7 +26,7 @@ public sealed partial class PasswordResetTests(TestDatabase database) : IDisposa
     {
         var response = await _factory.CreateBrowserLikeClient().PostJsonAsync("/api/auth/forgot-password", new { email });
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        var message = await _factory.Emails.WaitForAsync(email);
+        var message = await _factory.Emails.WaitForAsync(email, "Redefinição de senha");
         Assert.Equal("Redefinição de senha — Datavello", message.Subject);
         return ParseLink(message.TextBody);
     }
@@ -63,7 +63,7 @@ public sealed partial class PasswordResetTests(TestDatabase database) : IDisposa
         var response = await _factory.CreateBrowserLikeClient().PostJsonAsync("/api/auth/forgot-password", new { email });
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        await Assert.ThrowsAsync<TimeoutException>(() => _factory.Emails.WaitForAsync(email, TimeSpan.FromMilliseconds(500)));
+        await Assert.ThrowsAsync<TimeoutException>(() => _factory.Emails.WaitForAsync(email, timeout: TimeSpan.FromMilliseconds(500)));
     }
 
     [Fact]
@@ -126,18 +126,17 @@ public sealed partial class PasswordResetTests(TestDatabase database) : IDisposa
     [Fact]
     public async Task E_mail_html_escapes_the_user_name()
     {
-        var client = _factory.CreateBrowserLikeClient();
         var email = $"html-{Guid.NewGuid():N}@datavello.test";
-        await (await client.PostJsonAsync("/api/auth/register", new
+        await _factory.RegisterAsync(new
         {
             fullName = "<script>alert(1)</script>",
             email,
             password = "SenhaForte123",
             companyName = "Empresa"
-        })).ReadAsync<MeResponse>();
+        });
 
         await _factory.CreateBrowserLikeClient().PostJsonAsync("/api/auth/forgot-password", new { email });
-        var message = await _factory.Emails.WaitForAsync(email);
+        var message = await _factory.Emails.WaitForAsync(email, "Redefinição de senha");
 
         Assert.DoesNotContain("<script>", message.HtmlBody);
         Assert.Contains("&lt;script&gt;", message.HtmlBody);

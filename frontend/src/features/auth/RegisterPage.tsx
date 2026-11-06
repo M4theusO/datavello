@@ -2,8 +2,7 @@ import { useEffect, useMemo } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { AlertCircle, UserPlus } from "lucide-react"
 import { useForm, type Path } from "react-hook-form"
-import { Link, useNavigate, useSearchParams } from "react-router"
-import { toast } from "sonner"
+import { Link, useSearchParams } from "react-router"
 import { z } from "zod"
 import { FullPageLoader, Spinner } from "@/components/feedback"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { ApiError, errorMessage } from "@/lib/api"
 import { useInvitationPreview, useRegister } from "./auth"
 import { AuthLayout } from "./AuthLayout"
+import { CheckYourEmail } from "./ConfirmRegistration"
 
 // Mirrors the backend rules (RegisterRequest + Identity password options).
 // With an invitation the account joins the inviting company, so no company name is asked.
@@ -39,7 +39,6 @@ type FormValues = z.infer<ReturnType<typeof buildSchema>>
 const serverFields: Path<FormValues>[] = ["fullName", "companyName", "email", "password"]
 
 export function RegisterPage() {
-  const navigate = useNavigate()
   const register = useRegister()
   const [params] = useSearchParams()
   const inviteToken = params.get("convite")
@@ -73,11 +72,12 @@ export function RegisterPage() {
     )
   }
 
+  // Account created: it signs in only after the e-mail is confirmed.
+  if (register.isSuccess) return <CheckYourEmail email={register.data.email} companyName={invitation.data?.companyName} />
+
   const onSubmit = form.handleSubmit(async ({ fullName, companyName, email, password }) => {
     try {
       await register.mutateAsync(inviteToken ? { fullName, email, password, inviteToken } : { fullName, companyName, email, password })
-      toast.success(invitation.data ? `Conta criada! Você agora faz parte de ${invitation.data.companyName}.` : "Conta criada! Bem-vindo(a) ao Datavello.")
-      navigate("/", { replace: true })
     } catch (error) {
       if (error instanceof ApiError) {
         // Show field-level validation messages from the server next to the matching inputs.
@@ -97,7 +97,7 @@ export function RegisterPage() {
       title="Crie sua conta"
       description={
         invitation.data
-          ? `${invitation.data.invitedBy} convidou você para ${invitation.data.companyName}. Ao criar a conta, você entra direto na empresa.`
+          ? `${invitation.data.invitedBy} convidou você para ${invitation.data.companyName}. Ao criar e confirmar a conta, você entra direto na empresa.`
           : "Leva menos de um minuto. Sua empresa já começa com categorias e um dashboard prontos."
       }
     >

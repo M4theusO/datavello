@@ -19,6 +19,20 @@ public static class EmailTemplates
             link: link,
             footer: "Se você não pediu a redefinição, ignore este e-mail: sua senha continua a mesma.");
 
+    public static EmailMessage ConfirmRegistration(string to, string fullName, string link, TimeSpan validFor) =>
+        Build(
+            to,
+            subject: "Confirme seu e-mail — Datavello",
+            greeting: $"Olá, {fullName}!",
+            paragraphs:
+            [
+                "Sua conta no Datavello foi criada. Falta só confirmar que este e-mail é seu.",
+                $"Use o botão abaixo para confirmar e entrar. O link vale por {Describe(validFor)}; depois disso, peça um novo na tela de login."
+            ],
+            buttonText: "Confirmar e-mail",
+            link: link,
+            footer: "Se você não criou uma conta no Datavello, ignore este e-mail.");
+
     public static EmailMessage Invitation(string to, string companyName, string invitedBy, string link, DateTimeOffset expiresAt) =>
         Build(
             to,

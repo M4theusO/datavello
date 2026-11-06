@@ -83,8 +83,7 @@ public sealed class AccountSettingsTests(TestDatabase database) : IDisposable
     public async Task Changing_the_password_keeps_this_session_and_ends_the_others()
     {
         var registration = ApiClient.NewRegistration();
-        var current = _factory.CreateBrowserLikeClient();
-        (await current.PostAsJsonAsync("/api/auth/register", registration)).EnsureSuccessStatusCode();
+        var (current, _) = await _factory.RegisterAsync(registration);
 
         var otherDevice = _factory.CreateBrowserLikeClient();
         (await otherDevice.PostAsJsonAsync("/api/auth/login", new LoginRequest { Email = registration.Email, Password = registration.Password }))

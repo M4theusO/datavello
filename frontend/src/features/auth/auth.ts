@@ -14,6 +14,9 @@ export interface Me {
   user: { id: string; fullName: string; email: string }
   activeCompany: CompanySummary | null
   companies: CompanySummary[]
+  /** False once the user owns `maxOwnedCompanies` companies. */
+  canCreateCompany: boolean
+  maxOwnedCompanies: number
 }
 
 export interface LoginInput {
@@ -88,12 +91,28 @@ export function useLogin() {
   })
 }
 
+/** Creates the account; it signs in only after the e-mail is confirmed (202, no session yet). */
 export function useRegister() {
+  return useMutation({
+    mutationFn: (input: RegisterInput) => api.post<{ email: string }>("/auth/register", input),
+  })
+}
+
+/** Confirms the e-mail from the link and starts the session. 409 = already confirmed (no session). */
+export function useConfirmEmail() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: RegisterInput) => api.post<Me>("/auth/register", input),
-    onSuccess: (me) => queryClient.setQueryData(meQueryKey, me.activeCompany ? selectCompany(me, me.activeCompany.id) : resolveMe(me)),
+    mutationFn: (input: { userId: string; token: string }) => api.post<Me>("/auth/confirm-email", input),
+    onSuccess: (me) => {
+      queryClient.clear()
+      queryClient.setQueryData(meQueryKey, me.activeCompany ? selectCompany(me, me.activeCompany.id) : resolveMe(me))
+    },
   })
+}
+
+/** Always succeeds for a valid e-mail; only unconfirmed accounts actually get a new link. */
+export function useResendConfirmation() {
+  return useMutation({ mutationFn: (input: { email: string }) => api.post<void>("/auth/resend-confirmation", input) })
 }
 
 export function useLogout() {
