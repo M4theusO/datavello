@@ -43,7 +43,7 @@ A ferramenta de migrations (`dotnet-ef`) não precisa ser instalada globalmente:
 ### 2. Obter o código
 
 ```powershell
-git clone https://github.com/matheusodev/datavello.git
+git clone https://github.com/M4theusO/datavello.git
 cd datavello
 ```
 

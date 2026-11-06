@@ -51,7 +51,7 @@ Fora do escopo do MVP: cobrança, planos, integrações ERP/bancárias, IA, app 
 
 ## Estado atual (06/11/2026)
 
-**MVP completo e verificado, mais a Etapa 7 (equipe e várias empresas).** Repositório: https://github.com/matheusodev/datavello (privado, branch `main`, um commit por etapa). Testes: 164 backend (xUnit, PostgreSQL real) + 37 frontend (Vitest); `npm audit` e NuGet sem vulnerabilidades. Instalação do zero conferida seguindo o README.
+**MVP completo e verificado, mais a Etapa 7 (equipe e várias empresas).** Repositório: https://github.com/M4theusO/datavello (privado, branch `main`, um commit por etapa). Testes: 164 backend (xUnit, PostgreSQL real) + 37 frontend (Vitest); `npm audit` e NuGet sem vulnerabilidades. Instalação do zero conferida seguindo o README.
 
 **Rodar:** `powershell -ExecutionPolicy Bypass -File scripts\dev.ps1` → http://localhost:5173 (API em :5080, Swagger em /swagger). Login demo (somente local): `demo@datavello.local` / `Demo12345`. Recriar demo: `dotnet run --project src/Datavello.Api -- seed-demo --reset` (em `backend/`).
 
