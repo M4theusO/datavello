@@ -3,21 +3,31 @@ using System.Security.Cryptography;
 using System.Text;
 using Datavello.Api.Domain;
 using Datavello.Api.Infrastructure.Data;
+using Datavello.Api.Infrastructure.Email;
 using Datavello.Api.Infrastructure.Errors;
 using Datavello.Api.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Datavello.Api.Features.Companies;
 
 /// <summary>
 /// Members of the active company and invitations to join it.
-/// Invitations are links the owner shares (no e-mail is sent by the MVP); the link token
+/// Invitations are e-mailed to the invitee and the link is also shown to the owner to share; the link token
 /// is random, single-use, expires and is stored only as a hash. Only an account whose
 /// e-mail matches the invitation can accept it.
 /// </summary>
-public sealed class TeamService(AppDbContext db, CurrentTenant tenant, ILookupNormalizer normalizer)
+public sealed class TeamService(
+    AppDbContext db,
+    CurrentTenant tenant,
+    ILookupNormalizer normalizer,
+    EmailQueue emails,
+    IOptions<AppUrlSettings> appUrl)
 {
+    /// <summary>Web app path of an invitation (the frontend builds the same link for the copy button).</summary>
+    public static string InvitationPath(string token) => $"/convite/{Uri.EscapeDataString(token)}";
+
     public static readonly TimeSpan InvitationLifetime = TimeSpan.FromDays(7);
     public const int MaxPendingInvitations = 50;
 
@@ -114,6 +124,9 @@ public sealed class TeamService(AppDbContext db, CurrentTenant tenant, ILookupNo
         await db.SaveChangesAsync(ct);
 
         var invitedBy = await db.Users.Where(u => u.Id == invitation.InvitedByUserId).Select(u => u.FullName).SingleAsync(ct);
+        var companyName = await db.Companies.Where(c => c.Id == companyId).Select(c => c.Name).SingleAsync(ct);
+        emails.Enqueue(EmailTemplates.Invitation(email, companyName, invitedBy, appUrl.Value.Link(InvitationPath(token)), invitation.ExpiresAt));
+
         return new CreatedInvitationDto(
             new InvitationDto(invitation.Id, invitation.Email, invitation.Role, invitedBy, invitation.CreatedAt, invitation.ExpiresAt, false),
             token);

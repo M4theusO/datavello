@@ -173,3 +173,16 @@ export function useResetPassword() {
     mutationFn: (input: { userId: string; token: string; newPassword: string }) => api.post<void>("/auth/reset-password", input),
   })
 }
+
+/** Confirms an e-mail change from the link. The server ends every session, including this one. */
+export function useConfirmEmailChange() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { userId: string; newEmail: string; token: string }) => api.post<{ email: string }>("/auth/confirm-email-change", input),
+    onSuccess: () => {
+      setActiveCompanyId(null)
+      queryClient.clear()
+      queryClient.setQueryData(meQueryKey, null)
+    },
+  })
+}

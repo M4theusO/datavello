@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Datavello.Api.Features.Profile;
 using Datavello.Api.Infrastructure.Security;
 using Datavello.Api.Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Authorization;
@@ -68,6 +69,24 @@ public sealed class AuthController(AuthService auth, ICurrentTenant tenant) : Co
     {
         await passwords.ResetAsync(request);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Confirma a troca de e-mail pelo link enviado ao novo endereço (funciona sem login, inclusive em
+    /// outro dispositivo). Todas as sessões são encerradas; o próximo login usa o novo e-mail.
+    /// </summary>
+    [HttpPost("confirm-email-change")]
+    [AllowAnonymous]
+    [EnableRateLimiting(AuthRateLimiting.Policy)]
+    [ProducesResponseType<EmailChangedDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<EmailChangedDto> ConfirmEmailChange(ConfirmEmailChangeRequest request, [FromServices] EmailChangeService emailChange)
+    {
+        var result = await emailChange.ConfirmAsync(request);
+        // The current browser's session belongs to the old identity: end it here as well.
+        await auth.LogoutAsync();
+        return result;
     }
 
     /// <summary>Usuário autenticado e empresa ativa.</summary>

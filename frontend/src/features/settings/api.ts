@@ -135,3 +135,10 @@ export function useLeaveCompany() {
     },
   })
 }
+
+/** Asks to change the sign-in e-mail; a confirmation link goes to the new address (202, nothing changes yet). */
+export function useRequestEmailChange() {
+  return useMutation({
+    mutationFn: (input: { newEmail: string; currentPassword: string }) => api.post<void>("/profile/email", input),
+  })
+}

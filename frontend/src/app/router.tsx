@@ -31,6 +31,11 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        // Public: the link may be opened on any device, signed in or not.
+        path: "/confirmar-email",
+        lazy: async () => ({ Component: (await import("@/features/auth/ConfirmEmailPage")).ConfirmEmailPage }),
+      },
+      {
         // Public: works signed in or out (the page adapts).
         path: "/convite/:token",
         lazy: async () => ({ Component: (await import("@/features/companies/InvitationPage")).InvitationPage }),

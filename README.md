@@ -16,7 +16,7 @@ Plataforma SaaS de BI e dashboards para pequenas empresas: cadastre receitas e d
 - Importação de planilhas `.csv` e `.xlsx` com mapeamento de colunas, prévia, validação por linha, detecção de duplicidades e histórico.
 - Personalização do dashboard (widgets, ordem e período padrão), configurações da empresa e perfil com troca de senha.
 - Equipe: convites por link, membros com papéis de proprietário e membro, várias empresas por usuário com troca da empresa ativa.
-- Recuperação de senha por e-mail (em desenvolvimento os e-mails ficam no Mailpit, sem sair para a internet).
+- E-mails: recuperação de senha, convites e troca do e-mail da conta com confirmação (em desenvolvimento os e-mails ficam no Mailpit, sem sair para a internet).
 
 ---
 

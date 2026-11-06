@@ -5,6 +5,7 @@ using Datavello.Api.Features.Categories;
 using Datavello.Api.Features.Companies;
 using Datavello.Api.Features.Dashboards;
 using Datavello.Api.Features.Imports;
+using Datavello.Api.Features.Profile;
 using Datavello.Api.Features.Transactions;
 using Datavello.Api.Infrastructure.Configuration;
 using Datavello.Api.Infrastructure.Data;
@@ -84,6 +85,7 @@ builder.Services.AddAuthRateLimiting(builder.Configuration);
 // --- Application services ---
 builder.Services.AddScoped<CompanyProvisioningService>();
 builder.Services.AddScoped<PasswordResetService>();
+builder.Services.AddScoped<EmailChangeService>();
 builder.Services.AddScoped<TeamService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<CategoryService>();

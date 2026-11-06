@@ -1,6 +1,6 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { KeyRound, Save, UserRound } from "lucide-react"
+import { KeyRound, Mail, Save, UserRound } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ApiError, errorMessage } from "@/lib/api"
 import { useChangePassword, useProfile, useUpdateProfile } from "./api"
+import { ChangeEmailDialog } from "./ChangeEmailDialog"
 
 const profileSchema = z.object({
   fullName: z.string().trim().min(2, "O nome deve ter entre 2 e 150 caracteres.").max(150, "O nome deve ter entre 2 e 150 caracteres."),
@@ -60,6 +61,7 @@ export function ProfilePage() {
 
 function PersonalDataCard({ fullName, email }: { fullName: string; email: string }) {
   const update = useUpdateProfile()
+  const [changingEmail, setChangingEmail] = useState(false)
   const form = useForm<z.infer<typeof profileSchema>>({ resolver: zodResolver(profileSchema), defaultValues: { fullName } })
   const { errors, isDirty } = form.formState
 
@@ -92,8 +94,14 @@ function PersonalDataCard({ fullName, email }: { fullName: string; email: string
             </Field>
             <Field>
               <FieldLabel htmlFor="profile-email">E-mail</FieldLabel>
-              <Input id="profile-email" type="email" value={email} disabled readOnly />
-              <FieldDescription>Usado para entrar no Datavello. A troca de e-mail estará disponível em uma versão futura.</FieldDescription>
+              <div className="flex gap-2">
+                <Input id="profile-email" type="email" value={email} disabled readOnly />
+                <Button type="button" variant="outline" aria-label="Alterar e-mail" onClick={() => setChangingEmail(true)}>
+                  <Mail data-icon="inline-start" />
+                  Alterar
+                </Button>
+              </div>
+              <FieldDescription>Usado para entrar no Datavello. A troca é confirmada por um link enviado ao novo e-mail.</FieldDescription>
             </Field>
           </FieldGroup>
         </CardContent>
@@ -104,6 +112,7 @@ function PersonalDataCard({ fullName, email }: { fullName: string; email: string
           </Button>
         </CardFooter>
       </form>
+      <ChangeEmailDialog open={changingEmail} onOpenChange={setChangingEmail} currentEmail={email} />
     </Card>
   )
 }

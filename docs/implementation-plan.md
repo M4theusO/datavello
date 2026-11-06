@@ -74,7 +74,7 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 - [x] Tela para usuário sem empresa; volta automática à empresa padrão quando o acesso é revogado
 - [x] Testes: 11 de integração (convites, papéis, isolamento entre empresas, cabeçalho recusado) + 6 Vitest; fluxo completo verificado no navegador
 
-## Etapa 8 — E-mail e recuperação de senha
+## Etapa 8 — E-mail, recuperação de senha e troca de e-mail ✅
 
 **8a. Envio de e-mail e recuperação de senha** ✅
 - [x] Infraestrutura de e-mail: fila em memória + envio em segundo plano via SMTP; Mailpit em desenvolvimento (`scripts/dev.ps1` o inicia)
@@ -83,6 +83,7 @@ Cada etapa termina com build verde, testes executados e relatório (o que foi fe
 - [x] Telas `/esqueci-senha` e `/redefinir-senha`; link na tela de login
 - [x] Testes: 6 de integração (fluxo completo, e-mail inexistente, token adulterado/de outro usuário, senha fraca, desbloqueio, HTML escapado); fluxo verificado no navegador com o Mailpit
 
-**8b. Próximos passos** (não iniciados)
-- [ ] Enviar o convite também por e-mail
-- [ ] Troca de e-mail da conta com confirmação no novo endereço
+**8b. Convite por e-mail e troca de e-mail** ✅
+- [x] Convite enviado por e-mail (o link continua visível para o proprietário compartilhar)
+- [x] Troca de e-mail: senha atual + link no novo endereço, confirmação por clique, aviso ao endereço antigo, sessões encerradas
+- [x] Testes: 5 de integração (fluxo completo, senha/e-mail inválidos, link adulterado ou de outra conta, e-mail ocupado antes da confirmação, e-mail do convite); fluxo verificado no navegador com o Mailpit

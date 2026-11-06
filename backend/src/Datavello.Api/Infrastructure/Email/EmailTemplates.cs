@@ -19,6 +19,53 @@ public static class EmailTemplates
             link: link,
             footer: "Se você não pediu a redefinição, ignore este e-mail: sua senha continua a mesma.");
 
+    public static EmailMessage Invitation(string to, string companyName, string invitedBy, string link, DateTimeOffset expiresAt) =>
+        Build(
+            to,
+            subject: $"{invitedBy} convidou você para {companyName} no Datavello",
+            greeting: "Olá!",
+            paragraphs:
+            [
+                $"{invitedBy} convidou você para acessar os dados da empresa {companyName} no Datavello, a ferramenta de indicadores e dashboards da empresa.",
+                $"Use o botão abaixo para aceitar. O convite vale até {FormatDate(expiresAt)}, só pode ser usado uma vez e somente com este e-mail ({to})."
+            ],
+            buttonText: "Ver convite",
+            link: link,
+            footer: "Se você não esperava este convite, ignore este e-mail.");
+
+    public static EmailMessage ConfirmEmailChange(string to, string fullName, string link, TimeSpan validFor) =>
+        Build(
+            to,
+            subject: "Confirme seu novo e-mail — Datavello",
+            greeting: $"Olá, {fullName}!",
+            paragraphs:
+            [
+                $"Recebemos um pedido para usar {to} como e-mail da sua conta no Datavello.",
+                $"Confirme pelo botão abaixo. O link vale por {Describe(validFor)}; até a confirmação, o e-mail atual continua valendo."
+            ],
+            buttonText: "Confirmar novo e-mail",
+            link: link,
+            footer: "Se você não fez esse pedido, ignore este e-mail: nada será alterado.");
+
+    public static EmailMessage EmailChangedNotice(string to, string fullName, string newEmail, string supportLink) =>
+        Build(
+            to,
+            subject: "O e-mail da sua conta foi alterado — Datavello",
+            greeting: $"Olá, {fullName}!",
+            paragraphs:
+            [
+                $"O e-mail da sua conta no Datavello foi alterado para {newEmail}. A partir de agora, use o novo endereço para entrar.",
+                "Por segurança, as sessões abertas foram encerradas."
+            ],
+            buttonText: "Entrar no Datavello",
+            link: supportLink,
+            footer: "Se não foi você, entre em contato com o proprietário da sua empresa no Datavello imediatamente.");
+
+    private static readonly TimeZoneInfo Brasilia = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+
+    private static string FormatDate(DateTimeOffset value) =>
+        TimeZoneInfo.ConvertTime(value, Brasilia).ToString("dd/MM/yyyy");
+
     private static string Describe(TimeSpan span) =>
         span.TotalHours >= 1 && span.TotalHours % 1 == 0
             ? span.TotalHours == 1 ? "1 hora" : $"{span.TotalHours:0} horas"

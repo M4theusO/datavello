@@ -37,7 +37,7 @@ datavello/
 
 SaaS B2B limpo: fundo claro, neutros, **azul** como cor principal; verde = positivo, vermelho = alerta (com moderação). Cards com borda discreta e sombra sutil. Sem excesso de gradientes. Logotipo original em SVG local (funciona em fundo claro e escuro). Sidebar recolhível (Dashboard, Transações, Categorias, Importar dados, Personalizar dashboard, Configurações, Perfil) + topbar com título, seletor de período e menu do usuário. Responsivo; estados de loading, erro, vazio e sucesso.
 
-## Etapas (detalhes em `docs/implementation-plan.md`)
+## Etapas (todas concluídas — detalhes em `docs/implementation-plan.md`)
 
 1. ✅ Inspeção e planejamento → `docs/architecture.md`, `docs/implementation-plan.md`
 2. ✅ Fundação (estrutura, PostgreSQL, migrations, UI base, auth, modelo multiempresa)
@@ -46,18 +46,17 @@ SaaS B2B limpo: fundo claro, neutros, **azul** como cor principal; verde = posit
 5. ✅ Testes e acabamento (configurações, perfil, revisão de segurança, responsividade, Vitest)
 6. ✅ Execução local no Windows (README passo a passo, `scripts/setup.ps1`, `scripts/dev.ps1`)
 7. ✅ Equipe e várias empresas (convites por link, membros, criação e troca de empresa ativa) — regras em `docs/architecture.md` §6
-8. 🔄 E-mail (Mailpit em dev) e recuperação de senha ✅; convite por e-mail e troca de e-mail pendentes — ver `docs/implementation-plan.md`
+8. ✅ E-mail (Mailpit em dev): recuperação de senha, convite por e-mail e troca de e-mail com confirmação — regras em `docs/architecture.md` §7
 
 Fora do escopo do MVP: cobrança, planos, integrações ERP/bancárias, IA, app mobile, editor avançado de dashboards, marketplace, permissões complexas, banco por cliente.
 
 ## Estado atual (06/11/2026)
 
-**MVP completo e verificado, mais a Etapa 7 (equipe e várias empresas) e a 8a (e-mail + recuperação de senha).** Repositório: https://github.com/M4theusO/datavello (privado, branch `main`, um commit por etapa). Testes: 170 backend (xUnit, PostgreSQL real) + 37 frontend (Vitest); `npm audit` e NuGet sem vulnerabilidades. Instalação do zero conferida seguindo o README.
+**MVP completo e verificado, mais as Etapas 7 (equipe e várias empresas) e 8 (e-mails: recuperação de senha, convite, troca de e-mail).** Repositório: https://github.com/M4theusO/datavello (privado, branch `main`, um commit por etapa). Testes: 175 backend (xUnit, PostgreSQL real) + 37 frontend (Vitest); `npm audit` e NuGet sem vulnerabilidades. Instalação do zero conferida seguindo o README.
 
 **Rodar:** `powershell -ExecutionPolicy Bypass -File scripts\dev.ps1` → http://localhost:5173 (API em :5080, Swagger em /swagger, e-mails no Mailpit em :8025 — instalar com `winget install --id axllent.mailpit -e`). Login demo (somente local): `demo@datavello.local` / `Demo12345`. Recriar demo: `dotnet run --project src/Datavello.Api -- seed-demo --reset` (em `backend/`).
 
 **Próximos passos possíveis (backlog, nada iniciado):**
-- Etapa 8b: enviar convite por e-mail; troca de e-mail com confirmação (a infraestrutura de e-mail já existe: `Infrastructure/Email`, `EmailQueue` + `EmailTemplates`).
 - Excluir a própria conta, excluir empresa e transferir a propriedade.
 - Publicação em produção: CSP no servidor do frontend, `ForwardedHeaders` atrás de proxy, segredos em cofre, CORS restrito (ver `docs/architecture.md` §7).
 - Processamento de importações grandes em segundo plano (hoje síncrono, limite de 5.000 linhas).

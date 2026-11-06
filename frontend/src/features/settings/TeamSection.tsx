@@ -151,7 +151,7 @@ export function TeamSection({ isOwner, companyName }: { isOwner: boolean; compan
               <EmptyState
                 icon={<MailPlus />}
                 title="Nenhum convite pendente"
-                description="Convide alguém pelo e-mail e envie o link gerado pelo canal que preferir."
+                description="Convide alguém pelo e-mail: a pessoa recebe o convite e você também pode copiar o link."
                 className="rounded-lg border border-dashed py-6"
               />
             ) : (
@@ -304,10 +304,10 @@ function InviteDialog({ open, onOpenChange, companyName }: { open: boolean; onOp
         {created ? (
           <div className="space-y-5">
             <DialogHeader>
-              <DialogTitle>Convite criado</DialogTitle>
+              <DialogTitle>Convite enviado</DialogTitle>
               <DialogDescription>
-                Envie este link para <strong className="text-foreground">{created.invitation.email}</strong> (por e-mail, WhatsApp ou outro canal). Ele vale
-                até {formatDay(created.invitation.expiresAt)} e só pode ser usado uma vez, com esse e-mail.
+                Enviamos o convite por e-mail para <strong className="text-foreground">{created.invitation.email}</strong>. Se preferir, copie o link e envie
+                também pelo WhatsApp ou outro canal. Ele vale até {formatDay(created.invitation.expiresAt)} e só pode ser usado uma vez, com esse e-mail.
               </DialogDescription>
             </DialogHeader>
             <Field>
@@ -318,7 +318,7 @@ function InviteDialog({ open, onOpenChange, companyName }: { open: boolean; onOp
                   {copied ? <Check /> : <Copy />}
                 </Button>
               </div>
-              <FieldDescription>Por segurança, o link não será exibido novamente. Se perdê-lo, convide o mesmo e-mail outra vez.</FieldDescription>
+              <FieldDescription>Por segurança, o link não será exibido novamente. Para reenviar, convide o mesmo e-mail outra vez.</FieldDescription>
             </Field>
             <DialogFooter>
               <Button type="button" onClick={() => handleOpenChange(false)}>
@@ -341,7 +341,7 @@ function InviteDialog({ open, onOpenChange, companyName }: { open: boolean; onOp
             <Field data-invalid={!!errors.email}>
               <FieldLabel htmlFor="invite-email">E-mail da pessoa</FieldLabel>
               <Input id="invite-email" type="email" autoComplete="off" placeholder="pessoa@empresa.com.br" aria-invalid={!!errors.email} {...form.register("email")} />
-              {errors.email ? <FieldError errors={[errors.email]} /> : <FieldDescription>Somente uma conta com este e-mail poderá aceitar o convite.</FieldDescription>}
+              {errors.email ? <FieldError errors={[errors.email]} /> : <FieldDescription>Enviaremos o convite para este e-mail. Somente uma conta com ele poderá aceitar.</FieldDescription>}
             </Field>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
@@ -349,7 +349,7 @@ function InviteDialog({ open, onOpenChange, companyName }: { open: boolean; onOp
               </Button>
               <Button type="submit" disabled={create.isPending}>
                 {create.isPending ? <Spinner className="size-4 text-primary-foreground" /> : <MailPlus data-icon="inline-start" />}
-                Gerar link
+                Enviar convite
               </Button>
             </DialogFooter>
           </form>

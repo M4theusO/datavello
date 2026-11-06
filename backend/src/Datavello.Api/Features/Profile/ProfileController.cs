@@ -71,6 +71,20 @@ public sealed class ProfileController(UserManager<AppUser> users, SignInManager<
         return NoContent();
     }
 
+    /// <summary>
+    /// Pede a troca do e-mail de acesso: exige a senha atual e envia um link de confirmação para o novo
+    /// endereço. Nada muda até a confirmação.
+    /// </summary>
+    [HttpPost("email")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RequestEmailChange(RequestEmailChangeRequest request, [FromServices] EmailChangeService emailChange)
+    {
+        await emailChange.RequestAsync(await CurrentUserAsync(), request);
+        return Accepted();
+    }
+
     private async Task<AppUser> CurrentUserAsync() =>
         await users.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
         ?? throw new AppException(StatusCodes.Status401Unauthorized, "Sessão inválida", "Faça login novamente.");
